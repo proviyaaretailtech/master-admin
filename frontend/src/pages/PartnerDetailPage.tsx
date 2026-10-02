@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -21,6 +22,9 @@ import {
 import { formatLastSync } from "../lib/date-utils";
 import { generateLocationCode } from "../lib/location-utils";
 import { usePermissions } from "../hooks/use-permissions";
+import { useFormat } from "../i18n/useFormat";
+import { statusLabel, locationTypeLabel } from "../i18n/labels";
+import { localizeError } from "../i18n/errors";
 
 export interface PartnerDetails {
   id: string;
@@ -54,6 +58,42 @@ interface LocationItem {
   lastSync: string;
   last_sync?: string;
 }
+
+// Display labels are looked up by key at render time; the raw values below are what the API
+// receives (and what colours/comparisons use), so they never change with the language.
+const ONBOARDING_STEP_KEYS = [
+  "becomePartner",
+  "verify",
+  "businessInfo",
+  "shopDetails",
+  "documents",
+  "bank",
+  "operations",
+  "agreement",
+  "reviewSubmit",
+] as const;
+
+const DOCUMENT_KEYS = [
+  "panCard",
+  "aadhaarCard",
+  "gstCertificate",
+  "shopLicense",
+  "cancelledCheque",
+] as const;
+
+const LOCATION_TYPE_OPTIONS = [
+  "Restaurant",
+  "Cloud Kitchen",
+  "Delivery Hub",
+  "Warehouse",
+  "Retail Outlet",
+] as const;
+
+const LOCATION_STATUS_OPTIONS = ["Active", "Pending", "Inactive", "Draft"] as const;
+
+const TIME_ZONE_OPTIONS = ["Asia/Kolkata", "UTC", "Asia/Dubai", "America/New_York"] as const;
+
+const CURRENCY_OPTIONS = ["INR (₹)", "USD ($)", "EUR (€)", "AED (د.إ)"] as const;
 
 const nowMs = Date.now();
 const INITIAL_LOCATIONS: LocationItem[] = [
@@ -115,6 +155,8 @@ const INITIAL_LOCATIONS: LocationItem[] = [
 ];
 
 export const PartnerDetailPage: React.FC = () => {
+  const { t } = useTranslation();
+  const f = useFormat();
   const navigate = useNavigate();
   const { can, canAccess } = usePermissions();
   const { org_id, id } = useParams<{ org_id?: string; id?: string }>();
@@ -159,7 +201,9 @@ export const PartnerDetailPage: React.FC = () => {
       loc.area.toLowerCase().includes(q) ||
       loc.code.toLowerCase().includes(q) ||
       loc.type.toLowerCase().includes(q) ||
+      locationTypeLabel(t, loc.type).toLowerCase().includes(q) ||
       loc.status.toLowerCase().includes(q) ||
+      statusLabel(t, loc.status).toLowerCase().includes(q) ||
       sync.main.toLowerCase().includes(q) ||
       sync.combined.toLowerCase().includes(q)
     );
@@ -236,7 +280,7 @@ export const PartnerDetailPage: React.FC = () => {
   const confirmDeleteLocation = async () => {
     if (!locationToDelete) return;
     if (!canDeleteLocation) {
-      showNotification("You do not have permission to delete locations", "error");
+      showNotification(t("locations.toast.noPermissionDelete"), "error");
       return;
     }
     setIsDeletingLocation(true);
@@ -245,13 +289,10 @@ export const PartnerDetailPage: React.FC = () => {
         await locationApi.delete(activeOrgId, locationToDelete.id);
       }
       setLocations((prev) => prev.filter((loc) => loc.id !== locationToDelete.id));
-      showNotification(`Location "${locationToDelete.name}" deleted successfully`, "success");
+      showNotification(t("locations.toast.deleted", { name: locationToDelete.name }), "success");
       setLocationToDelete(null);
     } catch (err: unknown) {
-      const errorMsg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        (err instanceof Error ? err.message : "Failed to delete location");
-      showNotification(errorMsg, "error");
+      showNotification(localizeError(err, "locations.toast.deleteFailed"), "error");
     } finally {
       setIsDeletingLocation(false);
     }
@@ -294,7 +335,7 @@ export const PartnerDetailPage: React.FC = () => {
   // Open Location Modal for Add
   const handleOpenAddLocation = () => {
     if (!canCreateLocation) {
-      showNotification("You do not have permission to add locations", "error");
+      showNotification(t("locations.toast.noPermissionAdd"), "error");
       return;
     }
     setEditingLocation(null);
@@ -314,7 +355,7 @@ export const PartnerDetailPage: React.FC = () => {
   // Open Location Modal for Edit
   const handleOpenEditLocation = (loc: LocationItem) => {
     if (!canEditLocation) {
-      showNotification("You do not have permission to edit locations", "error");
+      showNotification(t("locations.toast.noPermissionEdit"), "error");
       return;
     }
     setEditingLocation(loc);
@@ -334,15 +375,15 @@ export const PartnerDetailPage: React.FC = () => {
   const handleSaveLocation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingLocation && !canEditLocation) {
-      showNotification("You do not have permission to edit locations", "error");
+      showNotification(t("locations.toast.noPermissionEdit"), "error");
       return;
     }
     if (!editingLocation && !canCreateLocation) {
-      showNotification("You do not have permission to add locations", "error");
+      showNotification(t("locations.toast.noPermissionAdd"), "error");
       return;
     }
     if (!locationForm.name.trim()) {
-      showNotification("Location name is required", "error");
+      showNotification(t("locations.toast.nameRequired"), "error");
       return;
     }
 
@@ -399,7 +440,7 @@ export const PartnerDetailPage: React.FC = () => {
             )
           );
         }
-        showNotification("Location updated successfully", "success");
+        showNotification(t("locations.toast.updated"), "success");
       } else {
         if (activeOrgId && !activeOrgId.startsWith("PRT-")) {
           const createPayload: CreateLocationPayload = {
@@ -442,14 +483,11 @@ export const PartnerDetailPage: React.FC = () => {
           };
           setLocations((prev) => [newLoc, ...prev]);
         }
-        showNotification("New location added successfully", "success");
+        showNotification(t("locations.toast.added"), "success");
       }
       setIsLocationModalOpen(false);
     } catch (err: unknown) {
-      const errorMsg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        (err instanceof Error ? err.message : "Failed to save location");
-      showNotification(errorMsg, "error");
+      showNotification(localizeError(err, "locations.toast.saveFailed"), "error");
     } finally {
       setIsSavingLocation(false);
     }
@@ -458,7 +496,7 @@ export const PartnerDetailPage: React.FC = () => {
   // Handle Lifecycle Actions - Delete Partner
   const handleDeletePartner = async () => {
     if (!canDeletePartner) {
-      showNotification("You do not have permission to delete partners", "error");
+      showNotification(t("orgs.detail.toast.noPermissionDelete"), "error");
       return;
     }
     setIsDeletingPartner(true);
@@ -467,15 +505,12 @@ export const PartnerDetailPage: React.FC = () => {
         await organizationApi.delete(activeOrgId);
       }
       setIsDeleteModalOpen(false);
-      showNotification(`Partner ${partner.business_name} deleted.`, "error");
+      showNotification(t("orgs.detail.toast.deleted", { name: partner.business_name }), "error");
       setTimeout(() => {
         navigate("/organizations/360");
       }, 1500);
     } catch (err: unknown) {
-      const errorMsg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        (err instanceof Error ? err.message : "Failed to delete partner");
-      showNotification(errorMsg, "error");
+      showNotification(localizeError(err, "orgs.detail.toast.deleteFailed"), "error");
     } finally {
       setIsDeletingPartner(false);
     }
@@ -503,7 +538,7 @@ export const PartnerDetailPage: React.FC = () => {
     <div className="w-full space-y-6 pb-14">
       {/* Toast Notification */}
       {notification.show && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all animate-in fade-in slide-in-from-top-3 duration-200 bg-white">
+        <div className="fixed top-20 right-6 z-50 max-w-[min(28rem,calc(100vw-2rem))] flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all animate-in fade-in slide-in-from-top-3 duration-200 bg-white">
           {notification.type === "success" && (
             <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
           )}
@@ -524,11 +559,11 @@ export const PartnerDetailPage: React.FC = () => {
           className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          Back to Organization 360
+          {t("orgs.detail.backToOrg360")}
         </Link>
         {activeOrgId && (
           <span className="text-[11px] font-mono font-medium text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
-            Org ID: {activeOrgId}
+            {t("orgs.detail.orgIdBadge", { id: activeOrgId })}
           </span>
         )}
       </div>
@@ -538,11 +573,10 @@ export const PartnerDetailPage: React.FC = () => {
       {/* ============================================================== */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-          Partner Detail
+          {t("orgs.detail.title")}
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-1">
-          Full-page review for {partner.business_name}, including onboarding progress, contact
-          information, document uploads, and lifecycle actions.
+          {t("orgs.detail.subtitle", { name: partner.business_name })}
         </p>
       </div>
 
@@ -556,7 +590,9 @@ export const PartnerDetailPage: React.FC = () => {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-base font-bold text-slate-900">Partner Summary</h2>
+                  <h2 className="text-base font-bold text-slate-900">
+                    {t("orgs.detail.summary.title")}
+                  </h2>
                   {isLoadingPartner && (
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
                   )}
@@ -572,7 +608,7 @@ export const PartnerDetailPage: React.FC = () => {
                     partner.status
                   )}`}
                 >
-                  {partner.status}
+                  {statusLabel(t, partner.status)}
                 </span>
               </div>
             </div>
@@ -581,7 +617,9 @@ export const PartnerDetailPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-6">
               {/* Partner ID */}
               <div className="bg-[#F8FAFC] border border-slate-200/70 rounded-xl p-3.5">
-                <div className="text-xs text-slate-400 font-medium">Partner ID</div>
+                <div className="text-xs text-slate-400 font-medium">
+                  {t("orgs.detail.summary.partnerId")}
+                </div>
                 <div
                   className="text-sm font-bold text-slate-900 mt-1.5 tracking-tight truncate font-mono"
                   title={partner.id}
@@ -592,7 +630,9 @@ export const PartnerDetailPage: React.FC = () => {
 
               {/* Primary Store */}
               <div className="bg-[#F8FAFC] border border-slate-200/70 rounded-xl p-3.5">
-                <div className="text-xs text-slate-400 font-medium">Primary Store</div>
+                <div className="text-xs text-slate-400 font-medium">
+                  {t("orgs.detail.summary.primaryStore")}
+                </div>
                 <div className="text-sm font-bold text-slate-900 mt-1.5 tracking-tight truncate">
                   {locations.length > 0 ? locations[0].name : "Main Restaurant"}
                 </div>
@@ -600,9 +640,11 @@ export const PartnerDetailPage: React.FC = () => {
 
               {/* Onboarding */}
               <div className="bg-[#F8FAFC] border border-slate-200/70 rounded-xl p-3.5">
-                <div className="text-xs text-slate-400 font-medium">Onboarding</div>
+                <div className="text-xs text-slate-400 font-medium">
+                  {t("orgs.detail.summary.onboarding")}
+                </div>
                 <div className="text-sm font-bold text-slate-900 mt-1.5 tracking-tight">
-                  0% complete
+                  {t("orgs.detail.summary.percentComplete", { percent: f.number(0) })}
                 </div>
               </div>
             </div>
@@ -612,27 +654,27 @@ export const PartnerDetailPage: React.FC = () => {
         {/* Card 2: Onboarding Progress */}
         <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs">
           <div>
-            <h2 className="text-base font-bold text-slate-900">Onboarding Progress</h2>
+            <h2 className="text-base font-bold text-slate-900">
+              {t("orgs.detail.onboarding.title")}
+            </h2>
             <p className="text-xs text-slate-500 mt-0.5 font-medium">
-              0% complete • 9 required steps
+              {t("orgs.detail.onboarding.summary", {
+                count: ONBOARDING_STEP_KEYS.length,
+                num: f.number(ONBOARDING_STEP_KEYS.length),
+                percent: f.number(0),
+              })}
             </p>
           </div>
 
           <div className="space-y-2 mt-4">
-            {[
-              "Become Partner",
-              "Verify",
-              "Business Info",
-              "Shop Details",
-              "Documents",
-              "Bank",
-              "Operations",
-              "Agreement",
-              "Review & Submit",
-            ].map((step) => (
-              <div key={step} className="flex items-center justify-between text-xs py-0.5">
-                <span className="font-semibold text-slate-800">{step}</span>
-                <span className="text-xs text-slate-400 font-normal">Pending</span>
+            {ONBOARDING_STEP_KEYS.map((step) => (
+              <div key={step} className="flex items-center justify-between gap-3 text-xs py-0.5">
+                <span className="font-semibold text-slate-800">
+                  {t(`orgs.detail.onboarding.steps.${step}`)}
+                </span>
+                <span className="text-xs text-slate-400 font-normal">
+                  {statusLabel(t, "Pending")}
+                </span>
               </div>
             ))}
           </div>
@@ -646,30 +688,30 @@ export const PartnerDetailPage: React.FC = () => {
         {/* Card 3: Contact & Basic */}
         <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs">
           <div>
-            <h2 className="text-base font-bold text-slate-900">Contact & Basic</h2>
+            <h2 className="text-base font-bold text-slate-900">{t("orgs.detail.contact.title")}</h2>
             <p className="text-xs text-slate-500 mt-0.5 font-medium">
-              Primary contact details and verification status for the partner.
+              {t("orgs.detail.contact.subtitle")}
             </p>
           </div>
 
           <div className="space-y-3.5 mt-5">
             {/* Email */}
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 font-normal">Email</span>
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-slate-500 font-normal">{t("common.email")}</span>
               <span className="font-bold text-slate-900 text-xs sm:text-sm">{partner.email}</span>
             </div>
 
             {/* Phone */}
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 font-normal">Phone</span>
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-slate-500 font-normal">{t("orgs.detail.contact.phone")}</span>
               <span className="font-bold text-slate-900 text-xs sm:text-sm">
                 {partner.phone_number}
               </span>
             </div>
 
             {/* City */}
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 font-normal">City</span>
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-slate-500 font-normal">{t("orgs.detail.contact.city")}</span>
               <span className="font-bold text-slate-900 text-xs sm:text-sm">
                 {locations[0]?.area
                   ? locations[0].area.includes(",")
@@ -680,18 +722,22 @@ export const PartnerDetailPage: React.FC = () => {
             </div>
 
             {/* Mobile verified */}
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 font-normal">Mobile verified</span>
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-slate-500 font-normal">
+                {t("orgs.detail.contact.mobileVerified")}
+              </span>
               <span className="bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                Verified
+                {t("orgs.detail.contact.verified")}
               </span>
             </div>
 
             {/* Email verified */}
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500 font-normal">Email verified</span>
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-slate-500 font-normal">
+                {t("orgs.detail.contact.emailVerified")}
+              </span>
               <span className="bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                Verified
+                {t("orgs.detail.contact.verified")}
               </span>
             </div>
           </div>
@@ -701,24 +747,22 @@ export const PartnerDetailPage: React.FC = () => {
         {canViewDocs && (
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs">
             <div>
-              <h2 className="text-base font-bold text-slate-900">Documents</h2>
+              <h2 className="text-base font-bold text-slate-900">
+                {t("orgs.detail.documents.title")}
+              </h2>
               <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                Upload status for the required partner verification documents.
+                {t("orgs.detail.documents.subtitle")}
               </p>
             </div>
 
             <div className="space-y-3 mt-5">
-              {[
-                "PAN Card",
-                "Aadhaar Card",
-                "GST Certificate",
-                "Shop Establishment License",
-                "Cancelled Cheque",
-              ].map((doc) => (
-                <div key={doc} className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-800 text-xs sm:text-sm">{doc}</span>
+              {DOCUMENT_KEYS.map((doc) => (
+                <div key={doc} className="flex items-center justify-between gap-3 text-xs">
+                  <span className="font-semibold text-slate-800 text-xs sm:text-sm">
+                    {t(`orgs.detail.documents.items.${doc}`)}
+                  </span>
                   <span className="bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A] text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                    Pending
+                    {statusLabel(t, "Pending")}
                   </span>
                 </div>
               ))}
@@ -733,9 +777,9 @@ export const PartnerDetailPage: React.FC = () => {
       {hasAnyReviewAction && (
         <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs">
           <div>
-            <h2 className="text-base font-bold text-slate-900">Review Actions</h2>
+            <h2 className="text-base font-bold text-slate-900">{t("orgs.detail.review.title")}</h2>
             <p className="text-xs text-slate-500 mt-0.5 font-medium">
-              Lifecycle actions for the partner application.
+              {t("orgs.detail.review.subtitle")}
             </p>
           </div>
 
@@ -744,15 +788,10 @@ export const PartnerDetailPage: React.FC = () => {
             {canApprovePartner && (
               <button
                 type="button"
-                onClick={() =>
-                  showNotification(
-                    "The Approve button is clickable, but it doesn't do anything yet. Its functionality is still in progress.",
-                    "info"
-                  )
-                }
+                onClick={() => showNotification(t("orgs.detail.review.approveNotReady"), "info")}
                 className="bg-[#00875A] hover:bg-[#00744D] text-white font-semibold text-xs px-5 py-2.5 rounded-lg transition-colors shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
               >
-                Approve
+                {t("orgs.detail.review.approve")}
               </button>
             )}
 
@@ -760,15 +799,10 @@ export const PartnerDetailPage: React.FC = () => {
             {canRejectPartner && (
               <button
                 type="button"
-                onClick={() =>
-                  showNotification(
-                    "The Reject button is clickable, but it doesn't do anything yet. Its functionality is still in progress.",
-                    "info"
-                  )
-                }
+                onClick={() => showNotification(t("orgs.detail.review.rejectNotReady"), "info")}
                 className="border border-[#F59E0B] text-[#D97706] hover:bg-[#FFFBEB] font-semibold text-xs px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
               >
-                Reject
+                {t("orgs.detail.review.reject")}
               </button>
             )}
 
@@ -777,14 +811,11 @@ export const PartnerDetailPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() =>
-                  showNotification(
-                    "The Mark under review button is clickable, but it doesn't do anything yet. Its functionality is still in progress.",
-                    "info"
-                  )
+                  showNotification(t("orgs.detail.review.markUnderReviewNotReady"), "info")
                 }
                 className="border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs px-5 py-2.5 rounded-lg transition-colors cursor-pointer"
               >
-                Mark under review
+                {t("orgs.detail.review.markUnderReview")}
               </button>
             )}
 
@@ -796,7 +827,7 @@ export const PartnerDetailPage: React.FC = () => {
                 className="border border-[#F43F5E] text-[#E11D48] hover:bg-[#FFF1F2] font-semibold text-xs px-5 py-2.5 rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                Delete Partner
+                {t("orgs.detail.review.deletePartner")}
               </button>
             )}
           </div>
@@ -813,15 +844,16 @@ export const PartnerDetailPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2.5">
                 <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-                  Location Management
+                  {t("locations.list.title")}
                 </h2>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                  {locations.length} {locations.length === 1 ? "Location" : "Locations"}
+                  {t("locations.list.count", {
+                    count: locations.length,
+                    num: f.number(locations.length),
+                  })}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Manage location records, review operational details, and configure store branches.
-              </p>
+              <p className="text-xs text-slate-500 mt-1">{t("locations.list.subtitle")}</p>
             </div>
 
             {/* Right-aligned Controls: Real-time Search + Prominent Primary "Add New Location" Button */}
@@ -833,13 +865,14 @@ export const PartnerDetailPage: React.FC = () => {
                   type="text"
                   value={locationSearchQuery}
                   onChange={(e) => setLocationSearchQuery(e.target.value)}
-                  placeholder="Search locations or codes..."
+                  placeholder={t("locations.list.searchPlaceholder")}
                   className="w-full pl-8 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all font-medium placeholder:text-slate-400 shadow-2xs"
                 />
                 {locationSearchQuery && (
                   <button
                     type="button"
                     onClick={() => setLocationSearchQuery("")}
+                    aria-label={t("locations.list.clearSearch")}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -855,7 +888,7 @@ export const PartnerDetailPage: React.FC = () => {
                   className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-sm hover:shadow cursor-pointer inline-flex items-center justify-center gap-1.5 shrink-0"
                 >
                   <Plus className="w-4 h-4 stroke-[2.5]" />
-                  Add New Location
+                  {t("locations.list.addNew")}
                 </button>
               )}
             </div>
@@ -867,18 +900,30 @@ export const PartnerDetailPage: React.FC = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200/80 bg-white">
-                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">Location</th>
                     <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">
-                      Location Code
+                      {t("locations.list.columnLocation")}
                     </th>
-                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">Type</th>
-                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">Status</th>
-                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">Time Zone</th>
-                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">Currency</th>
-                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">Last Sync</th>
+                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">
+                      {t("locations.list.columnCode")}
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">
+                      {t("common.type")}
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">
+                      {t("common.status")}
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">
+                      {t("locations.list.columnTimeZone")}
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">
+                      {t("locations.list.columnCurrency")}
+                    </th>
+                    <th className="px-5 py-3.5 text-xs font-semibold text-slate-600">
+                      {t("locations.list.columnLastSync")}
+                    </th>
                     {canManageLocation && (
                       <th className="px-5 py-3.5 text-xs font-semibold text-slate-600 text-right">
-                        Action
+                        {t("locations.list.columnAction")}
                       </th>
                     )}
                   </tr>
@@ -892,7 +937,7 @@ export const PartnerDetailPage: React.FC = () => {
                       >
                         <div className="flex items-center justify-center gap-2">
                           <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
-                          <span>Loading locations...</span>
+                          <span>{t("locations.list.loading")}</span>
                         </div>
                       </td>
                     </tr>
@@ -902,14 +947,14 @@ export const PartnerDetailPage: React.FC = () => {
                         colSpan={canManageLocation ? 8 : 7}
                         className="px-5 py-8 text-center text-xs text-slate-400"
                       >
-                        No locations found matching &quot;{locationSearchQuery}&quot;.
+                        {t("locations.list.noMatch", { query: locationSearchQuery })}
                         {locationSearchQuery && (
                           <button
                             type="button"
                             onClick={() => setLocationSearchQuery("")}
                             className="ml-2 text-blue-600 hover:underline font-semibold cursor-pointer"
                           >
-                            Clear search
+                            {t("locations.list.clearSearch")}
                           </button>
                         )}
                       </td>
@@ -927,7 +972,9 @@ export const PartnerDetailPage: React.FC = () => {
                         <td className="px-5 py-4 text-xs font-medium text-slate-800">{loc.code}</td>
 
                         {/* Type */}
-                        <td className="px-5 py-4 text-xs font-medium text-slate-700">{loc.type}</td>
+                        <td className="px-5 py-4 text-xs font-medium text-slate-700">
+                          {locationTypeLabel(t, loc.type)}
+                        </td>
 
                         {/* Status */}
                         <td className="px-5 py-4">
@@ -936,7 +983,7 @@ export const PartnerDetailPage: React.FC = () => {
                               loc.status
                             )}`}
                           >
-                            {loc.status}
+                            {statusLabel(t, loc.status)}
                           </span>
                         </td>
 
@@ -957,7 +1004,7 @@ export const PartnerDetailPage: React.FC = () => {
                             return (
                               <div
                                 className="flex flex-col text-left"
-                                title={`Last synchronized: ${sync.full}`}
+                                title={t("locations.list.lastSyncedTitle", { time: sync.full })}
                               >
                                 <span className="text-xs font-semibold text-slate-800">
                                   {sync.main} ({sync.sub})
@@ -977,7 +1024,7 @@ export const PartnerDetailPage: React.FC = () => {
                                   onClick={() => handleOpenEditLocation(loc)}
                                   className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200/90 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                                 >
-                                  Edit
+                                  {t("common.edit")}
                                 </button>
                               )}
                               {canDeleteLocation && (
@@ -986,7 +1033,7 @@ export const PartnerDetailPage: React.FC = () => {
                                   onClick={() => setLocationToDelete(loc)}
                                   className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-white border border-rose-200 rounded-xl hover:bg-rose-50 transition-colors shadow-2xs cursor-pointer"
                                 >
-                                  Delete
+                                  {t("common.delete")}
                                 </button>
                               )}
                             </div>
@@ -1002,9 +1049,12 @@ export const PartnerDetailPage: React.FC = () => {
             {/* Table Footer with Summary & Subtext */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-5 py-3 border-t border-slate-100 bg-slate-50/50 text-[11px] text-slate-500">
               <span>
-                Showing {filteredLocations.length} of {locations.length} operational locations
+                {t("locations.list.footerShowing", {
+                  shown: f.number(filteredLocations.length),
+                  total: f.number(locations.length),
+                })}
               </span>
-              <span>Use the modal pattern for adding and configuring location records.</span>
+              <span>{t("locations.list.footerHint")}</span>
             </div>
           </div>
         </div>
@@ -1023,18 +1073,19 @@ export const PartnerDetailPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">
-                    {editingLocation ? "Edit Location" : "Add New Location"}
+                    {editingLocation ? t("locations.form.editTitle") : t("locations.form.addTitle")}
                   </h3>
                   <p className="text-xs text-slate-500">
                     {editingLocation
-                      ? `Update operational settings for ${editingLocation.name}`
-                      : "Enter operational details to add a new outlet or facility"}
+                      ? t("locations.form.editSubtitle", { name: editingLocation.name })
+                      : t("locations.form.addSubtitle")}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsLocationModalOpen(false)}
+                aria-label={t("common.close")}
                 className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -1044,12 +1095,12 @@ export const PartnerDetailPage: React.FC = () => {
             <form onSubmit={handleSaveLocation} className="mt-5 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Location Name *
+                  {t("locations.form.name")}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Indiranagar Flagship Outlet"
+                  placeholder={t("locations.form.namePlaceholder")}
                   value={locationForm.name}
                   onChange={(e) => setLocationForm({ ...locationForm, name: e.target.value })}
                   className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 placeholder:text-slate-400 font-medium"
@@ -1058,11 +1109,11 @@ export const PartnerDetailPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Area / City Subtitle
+                  {t("locations.form.area")}
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Indiranagar, Bengaluru"
+                  placeholder={t("locations.form.areaPlaceholder")}
                   value={locationForm.area}
                   onChange={(e) => setLocationForm({ ...locationForm, area: e.target.value })}
                   className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 placeholder:text-slate-400 font-medium"
@@ -1073,10 +1124,10 @@ export const PartnerDetailPage: React.FC = () => {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-xs font-semibold text-slate-700">
-                      Location Code
+                      {t("locations.form.code")}
                     </label>
                     <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                      Auto-generated (Locked)
+                      {t("locations.form.codeLocked")}
                     </span>
                   </div>
                   <input
@@ -1087,25 +1138,23 @@ export const PartnerDetailPage: React.FC = () => {
                     value={locationForm.code}
                     className="w-full px-3.5 py-2.5 text-xs bg-slate-100 border border-slate-200 rounded-xl text-slate-600 font-mono font-bold uppercase cursor-not-allowed select-none focus:outline-none"
                   />
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Auto-generated from business initials and location count.
-                  </p>
+                  <p className="text-[11px] text-slate-400 mt-1">{t("locations.form.codeHint")}</p>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Location Type
+                    {t("locations.form.type")}
                   </label>
                   <select
                     value={locationForm.type}
                     onChange={(e) => setLocationForm({ ...locationForm, type: e.target.value })}
                     className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium cursor-pointer"
                   >
-                    <option value="Restaurant">Restaurant</option>
-                    <option value="Cloud Kitchen">Cloud Kitchen</option>
-                    <option value="Delivery Hub">Delivery Hub</option>
-                    <option value="Warehouse">Warehouse</option>
-                    <option value="Retail Outlet">Retail Outlet</option>
+                    {LOCATION_TYPE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {locationTypeLabel(t, opt)}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -1113,7 +1162,7 @@ export const PartnerDetailPage: React.FC = () => {
               <div className="grid grid-cols-3 gap-3.5">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Status
+                    {t("common.status")}
                   </label>
                   <select
                     value={locationForm.status}
@@ -1125,42 +1174,45 @@ export const PartnerDetailPage: React.FC = () => {
                     }
                     className="w-full px-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium cursor-pointer"
                   >
-                    <option value="Active">Active</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Draft">Draft</option>
+                    {LOCATION_STATUS_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {statusLabel(t, opt)}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Time Zone
+                    {t("locations.form.timeZone")}
                   </label>
                   <select
                     value={locationForm.timeZone}
                     onChange={(e) => setLocationForm({ ...locationForm, timeZone: e.target.value })}
                     className="w-full px-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium cursor-pointer"
                   >
-                    <option value="Asia/Kolkata">Asia/Kolkata</option>
-                    <option value="UTC">UTC</option>
-                    <option value="Asia/Dubai">Asia/Dubai</option>
-                    <option value="America/New_York">America/New_York</option>
+                    {TIME_ZONE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Currency
+                    {t("locations.form.currency")}
                   </label>
                   <select
                     value={locationForm.currency}
                     onChange={(e) => setLocationForm({ ...locationForm, currency: e.target.value })}
                     className="w-full px-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-900 font-medium cursor-pointer"
                   >
-                    <option value="INR (₹)">INR (₹)</option>
-                    <option value="USD ($)">USD ($)</option>
-                    <option value="EUR (€)">EUR (€)</option>
-                    <option value="AED (د.إ)">AED (د.إ)</option>
+                    {CURRENCY_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -1171,7 +1223,7 @@ export const PartnerDetailPage: React.FC = () => {
                   onClick={() => setIsLocationModalOpen(false)}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
@@ -1179,7 +1231,9 @@ export const PartnerDetailPage: React.FC = () => {
                   className="px-5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 rounded-xl transition-colors shadow-sm cursor-pointer inline-flex items-center gap-1.5"
                 >
                   {isSavingLocation && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  {editingLocation ? "Save Changes" : "Create Location"}
+                  {editingLocation
+                    ? t("locations.form.saveChanges")
+                    : t("locations.form.createCta")}
                 </button>
               </div>
             </form>
@@ -1199,15 +1253,21 @@ export const PartnerDetailPage: React.FC = () => {
                 <Trash2 className="w-5 h-5 stroke-[2.2]" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Delete Partner</h3>
-                <p className="text-xs text-slate-500 mt-0.5">This action cannot be undone.</p>
+                <h3 className="text-base font-bold text-slate-900">
+                  {t("orgs.detail.delete.title")}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {t("orgs.detail.delete.irreversible")}
+                </p>
               </div>
             </div>
 
             <div className="mt-4 p-3.5 bg-rose-50/60 rounded-xl border border-rose-100 text-xs text-rose-800 font-medium">
-              Are you sure you want to permanently delete partner{" "}
-              <span className="font-bold">{partner.business_name}</span> (ID: {partner.id}) and all
-              of its associated records, branches, and documents?
+              <Trans
+                i18nKey="orgs.detail.delete.confirm"
+                values={{ name: partner.business_name, id: partner.id }}
+                components={{ b: <span className="font-bold" /> }}
+              />
             </div>
 
             <div className="flex items-center justify-end gap-2.5 mt-6">
@@ -1216,7 +1276,7 @@ export const PartnerDetailPage: React.FC = () => {
                 onClick={() => setIsDeleteModalOpen(false)}
                 className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -1229,7 +1289,9 @@ export const PartnerDetailPage: React.FC = () => {
                 ) : (
                   <Trash2 className="w-4 h-4" />
                 )}
-                {isDeletingPartner ? "Deleting..." : "Delete Partner"}
+                {isDeletingPartner
+                  ? t("orgs.detail.delete.deleting")
+                  : t("orgs.detail.delete.title")}
               </button>
             </div>
           </div>
@@ -1248,14 +1310,21 @@ export const PartnerDetailPage: React.FC = () => {
                 <Trash2 className="w-5 h-5 stroke-[2.2]" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Delete Location</h3>
-                <p className="text-xs text-slate-500 mt-0.5">This action cannot be undone.</p>
+                <h3 className="text-base font-bold text-slate-900">
+                  {t("locations.delete.title")}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {t("orgs.detail.delete.irreversible")}
+                </p>
               </div>
             </div>
 
             <div className="mt-4 p-3.5 bg-rose-50/60 rounded-xl border border-rose-100 text-xs text-rose-800 font-medium">
-              Are you sure you want to permanently delete location{" "}
-              <span className="font-bold">{locationToDelete.name}</span> ({locationToDelete.code})?
+              <Trans
+                i18nKey="locations.delete.confirm"
+                values={{ name: locationToDelete.name, code: locationToDelete.code }}
+                components={{ b: <span className="font-bold" /> }}
+              />
             </div>
 
             <div className="flex items-center justify-end gap-2.5 mt-6">
@@ -1264,7 +1333,7 @@ export const PartnerDetailPage: React.FC = () => {
                 onClick={() => setLocationToDelete(null)}
                 className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -1277,7 +1346,7 @@ export const PartnerDetailPage: React.FC = () => {
                 ) : (
                   <Trash2 className="w-4 h-4" />
                 )}
-                {isDeletingLocation ? "Deleting..." : "Delete Location"}
+                {isDeletingLocation ? t("orgs.detail.delete.deleting") : t("locations.delete.cta")}
               </button>
             </div>
           </div>

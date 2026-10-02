@@ -1,12 +1,30 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import { Loader2, AlertCircle, CheckCircle2, AlertTriangle, X } from "lucide-react";
 import { addonApi, CreateAddonPayload } from "../api/addon.api";
 import { planApi, CommercialPlanItem } from "../api/plan.api";
 import { usePermissions } from "../hooks/use-permissions";
+import { useFormat } from "../i18n/useFormat";
+import { cadenceLabel, codeLabel, statusLabel } from "../i18n/labels";
+import { localizeError } from "../i18n/errors";
+
+// Cadence codes offered in the select; the visible text comes from the catalogue.
+const CADENCE_OPTIONS = ["Monthly", "Quarterly", "Annual", "One-time"] as const;
+
+// Validation results shown on the panel (and sent with a save). Codes, translated at display time.
+const BILLING_SYNC_STATUS = "Success";
+const ENTITLEMENT_VALIDATION_STATUS = "Passed";
+const TAX_COMPLIANCE_STATUS = "Pending verification";
+
+// What is on screen as an alert. `error` is kept as the ERROR (not a string) so it re-translates
+// when the language changes; with no `error`, `key` is a plain validation message.
+type ScreenError = { key: string; error?: unknown };
 
 export const AddonEditorPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const f = useFormat();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
 
@@ -19,7 +37,7 @@ export const AddonEditorPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(isEditMode);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [plans, setPlans] = useState<CommercialPlanItem[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [screenError, setScreenError] = useState<ScreenError | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Form State matching media_1790759137875.png
@@ -103,8 +121,8 @@ export const AddonEditorPage: React.FC = () => {
           setStatus("Draft");
           setVersion("v1.2");
         }
-      } catch (err: any) {
-        setErrorMessage(err?.message || "Failed to load add-on configuration");
+      } catch (err) {
+        setScreenError({ key: "addons.editor.errors.loadFailed", error: err });
       } finally {
         setIsLoading(false);
       }
@@ -143,16 +161,16 @@ export const AddonEditorPage: React.FC = () => {
 
   const handleSaveProgress = async () => {
     if (!name.trim()) {
-      setErrorMessage("Add-on display name is required");
+      setScreenError({ key: "addons.editor.errors.nameRequired" });
       return;
     }
     if (!addonCode.trim()) {
-      setErrorMessage("Add-on code identifier is required");
+      setScreenError({ key: "addons.editor.errors.codeRequired" });
       return;
     }
 
     setIsSaving(true);
-    setErrorMessage(null);
+    setScreenError(null);
 
     const payload: CreateAddonPayload = {
       name: name.trim(),
@@ -170,22 +188,22 @@ export const AddonEditorPage: React.FC = () => {
       max_quantity: Number(maxQuantity) || 10,
       effective_date: effectiveDate ? new Date(effectiveDate).toISOString() : null,
       compatible_plans: compatiblePlans,
-      billing_sync_status: "Success",
-      entitlement_validation_status: "Passed",
-      tax_compliance_status: "Pending verification",
+      billing_sync_status: BILLING_SYNC_STATUS,
+      entitlement_validation_status: ENTITLEMENT_VALIDATION_STATUS,
+      tax_compliance_status: TAX_COMPLIANCE_STATUS,
     };
 
     try {
       if (isEditMode && id) {
         await addonApi.update(id, payload);
-        showToast("Add-on progress saved successfully.");
+        showToast(t("addons.toast.progressSaved"));
       } else {
         const created = await addonApi.create(payload);
-        showToast("New commercial add-on created successfully.");
+        showToast(t("addons.toast.created"));
         navigate(`/commercials/add-ons/${created.addon.id}/edit`, { replace: true });
       }
-    } catch (err: any) {
-      setErrorMessage(err?.message || "Failed to save add-on progress");
+    } catch (err) {
+      setScreenError({ key: "addons.editor.errors.saveFailed", error: err });
     } finally {
       setIsSaving(false);
     }
@@ -193,12 +211,12 @@ export const AddonEditorPage: React.FC = () => {
 
   const handlePublishAddon = async () => {
     if (!name.trim() || !addonCode.trim()) {
-      setErrorMessage("Display name and add-on code are required before publishing");
+      setScreenError({ key: "addons.editor.errors.publishFieldsRequired" });
       return;
     }
 
     setIsPublishing(true);
-    setErrorMessage(null);
+    setScreenError(null);
 
     try {
       let targetId = id;
@@ -226,11 +244,11 @@ export const AddonEditorPage: React.FC = () => {
       }
 
       await addonApi.publish(targetId);
-      showToast(`Commercial add-on '${name}' published successfully.`);
+      showToast(t("addons.toast.editorPublished", { name }));
       setShowPublishModal(false);
       navigate("/commercials/add-ons");
-    } catch (err: any) {
-      setErrorMessage(err?.message || "Failed to publish add-on");
+    } catch (err) {
+      setScreenError({ key: "addons.editor.errors.publishFailed", error: err });
     } finally {
       setIsPublishing(false);
     }
@@ -240,7 +258,7 @@ export const AddonEditorPage: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center py-28 bg-white rounded-2xl border border-slate-200 shadow-2xs">
         <Loader2 className="w-8 h-8 animate-spin text-[#4FA800] mb-3" />
-        <p className="text-xs font-semibold text-slate-600">Loading Add-on Editor...</p>
+        <p className="text-xs font-semibold text-slate-600">{t("addons.editor.loading")}</p>
       </div>
     );
   }
@@ -249,47 +267,53 @@ export const AddonEditorPage: React.FC = () => {
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-600/20 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
+        <div className="fixed top-5 right-5 z-50 max-w-[min(28rem,calc(100vw-2rem))] flex items-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-600/20 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
           <CheckCircle2 className="w-4 h-4" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Error Alert */}
-      {errorMessage && (
-        <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs">
+      {screenError && (
+        <div className="flex items-center justify-between gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{errorMessage}</span>
+            <span>
+              {screenError.error === undefined
+                ? t(screenError.key)
+                : localizeError(screenError.error, screenError.key)}
+            </span>
           </div>
           <button
-            onClick={() => setErrorMessage(null)}
+            onClick={() => setScreenError(null)}
             className="text-red-500 hover:text-red-700 font-bold ml-4 cursor-pointer"
           >
-            Dismiss
+            {t("addons.dismiss")}
           </button>
         </div>
       )}
 
       {/* Header matching media_1790759137875.png */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            {name ? `${name.split(" ")[0]} Location Editor` : "Add-on Editor"}
+            {name
+              ? t("addons.editor.titleWithName", { name: name.split(" ")[0] })
+              : t("addons.editor.title")}
           </h1>
           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-            {status} {version}
+            {statusLabel(t, status)} {version}
           </span>
         </div>
 
         {/* Header Action Buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={() => setShowDiscardModal(true)}
             className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
           >
-            Discard Draft
+            {t("addons.editor.discardDraft")}
           </button>
 
           <button
@@ -299,7 +323,7 @@ export const AddonEditorPage: React.FC = () => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
           >
             {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            <span>Save Progress</span>
+            <span>{t("addons.editor.saveProgress")}</span>
           </button>
 
           {canPublish && (
@@ -308,7 +332,7 @@ export const AddonEditorPage: React.FC = () => {
               onClick={() => setShowPublishModal(true)}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-white bg-[#4FA800] hover:bg-[#439000] active:bg-[#387a00] transition-colors shadow-xs cursor-pointer"
             >
-              <span>Publish Add-on</span>
+              <span>{t("addons.editor.publishAddon")}</span>
             </button>
           )}
         </div>
@@ -320,8 +344,15 @@ export const AddonEditorPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#D97706] shrink-0" />
             <span>
-              <strong>Warning:</strong> Modifying CADENCE to &quot;{cadence}&quot; will auto-retire
-              the legacy &quot;Quarterly Location&quot; pack active for 14 clients.
+              <Trans
+                i18nKey="addons.editor.cadenceWarning"
+                values={{
+                  cadence: cadenceLabel(t, cadence),
+                  pack: "Quarterly Location",
+                  clients: f.number(14),
+                }}
+                components={{ strong: <strong /> }}
+              />
             </span>
           </div>
           <button
@@ -341,19 +372,19 @@ export const AddonEditorPage: React.FC = () => {
           {/* Card 1: Add-on Metadata & Description */}
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-2xs space-y-4">
             <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-              Add-on Metadata & Description
+              {t("addons.editor.metadataTitle")}
             </h2>
 
             {/* ADD-ON DISPLAY NAME */}
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                ADD-ON DISPLAY NAME
+                {t("addons.editor.labelName")}
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Additional Location Deployment"
+                placeholder={t("addons.editor.placeholderName")}
                 className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#4FA800] focus:border-[#4FA800] transition-colors"
               />
             </div>
@@ -361,13 +392,13 @@ export const AddonEditorPage: React.FC = () => {
             {/* ADD-ON CODE / IDENTIFIER */}
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                ADD-ON CODE / IDENTIFIER
+                {t("addons.editor.labelCode")}
               </label>
               <input
                 type="text"
                 value={addonCode}
                 onChange={(e) => setAddonCode(e.target.value)}
-                placeholder="e.g. ad-loc-11"
+                placeholder={t("addons.editor.placeholderCode")}
                 className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#4FA800] focus:border-[#4FA800] transition-colors"
               />
             </div>
@@ -375,13 +406,13 @@ export const AddonEditorPage: React.FC = () => {
             {/* DETAILED DESCRIPTION */}
             <div className="space-y-1.5">
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                DETAILED DESCRIPTION
+                {t("addons.editor.labelDescription")}
               </label>
               <textarea
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Permits tenant organizations to provision additional resources beyond their root entitlement base level."
+                placeholder={t("addons.editor.placeholderDescription")}
                 className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#4FA800] focus:border-[#4FA800] transition-colors leading-relaxed"
               />
             </div>
@@ -390,20 +421,20 @@ export const AddonEditorPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  CATEGORY
+                  {t("addons.editor.labelCategory")}
                 </label>
                 <input
                   type="text"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  placeholder="e.g. Locations & Logistics"
+                  placeholder={t("addons.editor.placeholderCategory")}
                   className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#4FA800] focus:border-[#4FA800] transition-colors"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  EFFECTIVE DATE
+                  {t("addons.editor.labelEffectiveDate")}
                 </label>
                 <input
                   type="text"
@@ -419,14 +450,14 @@ export const AddonEditorPage: React.FC = () => {
           {/* Card 2: Pricing & Quantity Controls */}
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-2xs space-y-4">
             <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-              Pricing & Quantity Controls
+              {t("addons.editor.pricingTitle")}
             </h2>
 
             {/* Row 1: INR PRICE & CADENCE */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  INR PRICE (₹)
+                  {t("addons.editor.labelPrice")}
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-2.5 text-xs text-slate-400 font-semibold">
@@ -444,17 +475,18 @@ export const AddonEditorPage: React.FC = () => {
 
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  CADENCE
+                  {t("addons.editor.labelCadence")}
                 </label>
                 <select
                   value={cadence}
                   onChange={(e) => setCadence(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-[#4FA800] focus:border-[#4FA800] transition-colors"
                 >
-                  <option value="Monthly">Monthly</option>
-                  <option value="Quarterly">Quarterly</option>
-                  <option value="Annual">Annual</option>
-                  <option value="One-time">One-time</option>
+                  {CADENCE_OPTIONS.map((c) => (
+                    <option key={c} value={c}>
+                      {cadenceLabel(t, c)}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -463,7 +495,7 @@ export const AddonEditorPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  MINIMUM PURCHASE QTY
+                  {t("addons.editor.labelMinQty")}
                 </label>
                 <div className="relative">
                   <input
@@ -474,14 +506,14 @@ export const AddonEditorPage: React.FC = () => {
                     className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#4FA800] focus:border-[#4FA800] transition-colors"
                   />
                   <span className="absolute right-3.5 top-2.5 text-[11px] text-slate-400">
-                    Unit
+                    {t("addons.editor.unitSuffix")}
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  MAXIMUM PURCHASE QTY
+                  {t("addons.editor.labelMaxQty")}
                 </label>
                 <div className="relative">
                   <input
@@ -492,7 +524,7 @@ export const AddonEditorPage: React.FC = () => {
                     className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#4FA800] focus:border-[#4FA800] transition-colors"
                   />
                   <span className="absolute right-3.5 top-2.5 text-[11px] text-slate-400">
-                    Units Max
+                    {t("addons.editor.unitsMaxSuffix")}
                   </span>
                 </div>
               </div>
@@ -502,26 +534,26 @@ export const AddonEditorPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  UNIT LABEL (e.g. location, 5 users)
+                  {t("addons.editor.labelUnitLabel")}
                 </label>
                 <input
                   type="text"
                   value={unitLabel}
                   onChange={(e) => setUnitLabel(e.target.value)}
-                  placeholder="e.g. location"
+                  placeholder={t("addons.editor.placeholderUnitLabel")}
                   className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#4FA800] focus:border-[#4FA800] transition-colors"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  PRICING SUBTITLE
+                  {t("addons.editor.labelSubtitle")}
                 </label>
                 <input
                   type="text"
                   value={pricingSubtitle}
                   onChange={(e) => setPricingSubtitle(e.target.value)}
-                  placeholder="e.g. Per site monthly billing"
+                  placeholder={t("addons.editor.placeholderSubtitle")}
                   className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#4FA800] focus:border-[#4FA800] transition-colors"
                 />
               </div>
@@ -535,19 +567,16 @@ export const AddonEditorPage: React.FC = () => {
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-2xs space-y-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-                Platform Plan Compatibility
+                {t("addons.editor.compatTitle")}
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Define which parent plans this add-on can be provisioned into.
-              </p>
+              <p className="text-xs text-slate-500 mt-1">{t("addons.editor.compatHint")}</p>
             </div>
 
             {/* Platform Plans List */}
             <div className="space-y-2.5 pt-1">
               {platformPlansList.length === 0 ? (
                 <div className="p-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-500">
-                  No published plans available. Only published platform plans can be configured for
-                  add-on compatibility.
+                  {t("addons.editor.noPlans")}
                 </div>
               ) : (
                 platformPlansList.map((plan) => {
@@ -558,7 +587,7 @@ export const AddonEditorPage: React.FC = () => {
                     <div
                       key={plan.id || plan.name}
                       onClick={() => handleToggleCompatibility(plan.name)}
-                      className={`flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
+                      className={`flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
                         isCompatible
                           ? "bg-[#EAF7E2] border-[#C8EAB3] text-slate-900"
                           : "bg-slate-50/80 border-slate-200/80 text-slate-600 hover:bg-slate-100/60"
@@ -569,13 +598,15 @@ export const AddonEditorPage: React.FC = () => {
                       {/* Compatibility Badge / Action Button */}
                       <button
                         type="button"
-                        className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors ${
+                        className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold text-left transition-colors ${
                           isCompatible
                             ? "bg-[#DEF5CE] text-[#337400]"
                             : "bg-red-50 text-red-600 border border-red-200/60"
                         }`}
                       >
-                        {isCompatible ? "Fully Compatible" : "Incompatible (Base Limit Lock)"}
+                        {isCompatible
+                          ? t("addons.editor.compatible")
+                          : t("addons.editor.incompatible")}
                       </button>
                     </div>
                   );
@@ -587,7 +618,7 @@ export const AddonEditorPage: React.FC = () => {
           {/* Card 4: System Integration Validation matching media_1790759137875.png */}
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-2xs space-y-4">
             <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-              System Integration Validation
+              {t("addons.editor.validationTitle")}
             </h2>
 
             <div className="space-y-3 pt-1">
@@ -595,7 +626,8 @@ export const AddonEditorPage: React.FC = () => {
               <div className="flex items-center gap-2.5 text-xs text-slate-700">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A] shrink-0" />
                 <span>
-                  Billing Engine sync check: <strong>Success</strong>
+                  {t("addons.editor.billingSyncCheck")}{" "}
+                  <strong>{codeLabel(t, "addons.sync", BILLING_SYNC_STATUS)}</strong>
                 </span>
               </div>
 
@@ -603,7 +635,10 @@ export const AddonEditorPage: React.FC = () => {
               <div className="flex items-center gap-2.5 text-xs text-slate-700">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A] shrink-0" />
                 <span>
-                  Entitlement schema structure validation: <strong>Passed</strong>
+                  {t("addons.editor.entitlementCheck")}{" "}
+                  <strong>
+                    {codeLabel(t, "addons.entitlement", ENTITLEMENT_VALIDATION_STATUS)}
+                  </strong>
                 </span>
               </div>
 
@@ -611,7 +646,8 @@ export const AddonEditorPage: React.FC = () => {
               <div className="flex items-center gap-2.5 text-xs text-slate-700">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#D97706] shrink-0" />
                 <span>
-                  Tax compliance registration status: <strong>Pending verification</strong>
+                  {t("addons.editor.taxCheck")}{" "}
+                  <strong>{codeLabel(t, "addons.tax", TAX_COMPLIANCE_STATUS)}</strong>
                 </span>
               </div>
             </div>
@@ -628,31 +664,31 @@ export const AddonEditorPage: React.FC = () => {
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Discard Draft Changes?</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Any unsaved modifications to this commercial add-on will be discarded.
-                </p>
+                <h3 className="text-base font-bold text-slate-900">
+                  {t("addons.dialog.discard.title")}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">{t("addons.dialog.discard.hint")}</p>
               </div>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Are you sure you want to discard your draft? This action cannot be undone.
+              {t("addons.dialog.discard.confirmText")}
             </p>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <div className="flex flex-wrap items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setShowDiscardModal(false)}
                 className="px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
               >
-                Continue Editing
+                {t("addons.dialog.discard.keepEditing")}
               </button>
               <button
                 type="button"
                 onClick={() => navigate("/commercials/add-ons")}
                 className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-xs cursor-pointer"
               >
-                Discard & Exit
+                {t("addons.dialog.discard.confirm")}
               </button>
             </div>
           </div>
@@ -668,47 +704,52 @@ export const AddonEditorPage: React.FC = () => {
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Publish Commercial Add-on</h3>
+                <h3 className="text-base font-bold text-slate-900">
+                  {t("addons.dialog.publish.title")}
+                </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Publish this add-on into active production for compatible parent plans.
+                  {t("addons.dialog.publish.productionHint")}
                 </p>
               </div>
             </div>
 
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Add-on Name:</span>
-                <span className="font-bold text-slate-900">{name}</span>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-500 font-medium">{t("addons.dialog.addonName")}</span>
+                <span className="font-bold text-slate-900 text-right">{name}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Unit Price:</span>
-                <span className="font-semibold text-slate-800">
-                  ₹{Number(price).toLocaleString("en-IN")} / {unitLabel}
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-500 font-medium">{t("addons.dialog.unitPrice")}</span>
+                <span className="font-semibold text-slate-800 text-right">
+                  {t("addons.pricePerUnit", { price: f.money(Number(price)), unit: unitLabel })}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Compatible Plans:</span>
-                <span className="font-semibold text-slate-800">
-                  {compatiblePlans.length > 0 ? compatiblePlans.join(", ") : "All platform tiers"}
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-500 font-medium">
+                  {t("addons.dialog.compatiblePlans")}
+                </span>
+                <span className="font-semibold text-slate-800 text-right">
+                  {compatiblePlans.length > 0 ? compatiblePlans.join(", ") : t("addons.allTiers")}
                 </span>
               </div>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Are you sure you want to publish{" "}
-              <strong className="text-slate-900 font-semibold">&quot;{name}&quot;</strong>? Tenant
-              organizations with compatible platform plans will immediately be able to purchase and
-              provision this add-on.
+              <Trans
+                i18nKey="addons.dialog.publish.confirmText"
+                values={{ name }}
+                components={{ strong: <strong className="text-slate-900 font-semibold" /> }}
+              />
             </p>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <div className="flex flex-wrap items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setShowPublishModal(false)}
                 disabled={isPublishing}
                 className="px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -717,7 +758,11 @@ export const AddonEditorPage: React.FC = () => {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#4FA800] hover:bg-[#439000] transition-colors shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {isPublishing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                <span>{isPublishing ? "Publishing..." : "Confirm & Publish"}</span>
+                <span>
+                  {isPublishing
+                    ? t("addons.dialog.publish.publishing")
+                    : t("addons.dialog.publish.confirm")}
+                </span>
               </button>
             </div>
           </div>

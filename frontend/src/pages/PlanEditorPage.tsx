@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Check, CheckCircle2, X, Loader2, AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { planApi } from "../api/plan.api";
 import { moduleApi } from "../api/module.api";
 import { usePermissions } from "../hooks/use-permissions";
+import { cadenceLabel } from "../i18n/labels";
+import { localizeError } from "../i18n/errors";
 
 interface PlatformModule {
   id: string;
@@ -13,10 +16,19 @@ interface PlatformModule {
   isFuture?: boolean;
 }
 
+/**
+ * A toast is either a catalogue key (plus values) or a caught error with its fallback key.
+ * It is turned into text when drawn, so it always shows in the current language.
+ */
+type ToastMessage =
+  | { key: string; values?: Record<string, string | number> }
+  | { error: unknown; fallbackKey: string };
+
 export const PlanEditorPage: React.FC = () => {
   const { planId } = useParams<{ planId?: string }>();
   const navigate = useNavigate();
   const { can } = usePermissions();
+  const { t } = useTranslation();
 
   const isNew = !planId || planId === "new";
   const canCreate = can("feat_commercial_plans", "create_plan");
@@ -46,7 +58,7 @@ export const PlanEditorPage: React.FC = () => {
 
   // Modals & Feedback
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<ToastMessage | null>(null);
 
   // Load modules & existing plan if editing
   useEffect(() => {
@@ -117,7 +129,7 @@ export const PlanEditorPage: React.FC = () => {
 
   const toggleModule = (id: string) => {
     if (!canManageModules) {
-      setToastMessage("You don't have permission to modify module bundles.");
+      setToastMessage({ key: "plans.toast.noPermissionModules" });
       setTimeout(() => setToastMessage(null), 3000);
       return;
     }
@@ -127,18 +139,16 @@ export const PlanEditorPage: React.FC = () => {
 
   const handleSaveDraft = async () => {
     if (modules.length === 0) {
-      setToastMessage(
-        "Platform modules are required before saving a plan. Please register platform modules first."
-      );
+      setToastMessage({ key: "plans.toast.modulesRequiredToSave" });
       setTimeout(() => setToastMessage(null), 3500);
       return;
     }
     if (!isNew && !canEdit) {
-      setToastMessage("You don't have permission to edit plans.");
+      setToastMessage({ key: "plans.toast.noPermissionEdit" });
       return;
     }
     if (isNew && !canCreate) {
-      setToastMessage("You don't have permission to create plans.");
+      setToastMessage({ key: "plans.toast.noPermissionCreate" });
       return;
     }
 
@@ -162,19 +172,16 @@ export const PlanEditorPage: React.FC = () => {
     try {
       if (isNew) {
         const res = await planApi.create(payload);
-        setToastMessage("Plan draft created successfully.");
+        setToastMessage({ key: "plans.toast.draftCreated" });
         setHasUnsavedChanges(false);
         setTimeout(() => navigate(`/commercials/plans/${res.plan.id}/edit`), 1000);
       } else if (planId) {
         await planApi.update(planId, payload);
-        setToastMessage("Plan draft saved successfully.");
+        setToastMessage({ key: "plans.toast.draftSaved" });
         setHasUnsavedChanges(false);
       }
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        "Failed to save draft.";
-      setToastMessage(msg);
+      setToastMessage({ error: err, fallbackKey: "plans.toast.saveDraftFailed" });
     } finally {
       setIsSaving(false);
       setTimeout(() => setToastMessage(null), 3500);
@@ -183,14 +190,12 @@ export const PlanEditorPage: React.FC = () => {
 
   const handlePublish = async () => {
     if (modules.length === 0) {
-      setToastMessage(
-        "Platform modules are required before publishing a plan. Please register platform modules first."
-      );
+      setToastMessage({ key: "plans.toast.modulesRequiredToPublish" });
       setTimeout(() => setToastMessage(null), 3500);
       return;
     }
     if (!canPublish) {
-      setToastMessage("You don't have permission to publish plans.");
+      setToastMessage({ key: "plans.toast.noPermissionPublish" });
       setTimeout(() => setToastMessage(null), 3000);
       return;
     }
@@ -213,7 +218,7 @@ export const PlanEditorPage: React.FC = () => {
           status: "Published",
           version_type: "Active",
         });
-        setToastMessage(`Plan "${planName}" created and published!`);
+        setToastMessage({ key: "plans.toast.createdAndPublished", values: { name: planName } });
       } else if (planId) {
         await planApi.update(planId, {
           name: planName,
@@ -228,15 +233,12 @@ export const PlanEditorPage: React.FC = () => {
           modules: selectedKeys,
         });
         await planApi.publish(planId);
-        setToastMessage(`Plan "${planName}" published successfully!`);
+        setToastMessage({ key: "plans.toast.published", values: { name: planName } });
       }
       setHasUnsavedChanges(false);
       setTimeout(() => navigate("/commercials/plans"), 1200);
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        "Failed to publish plan.";
-      setToastMessage(msg);
+      setToastMessage({ error: err, fallbackKey: "plans.toast.publishFailed" });
     } finally {
       setIsSaving(false);
       setTimeout(() => setToastMessage(null), 3500);
@@ -247,28 +249,34 @@ export const PlanEditorPage: React.FC = () => {
     <div className="space-y-5 max-w-7xl mx-auto pb-16 antialiased">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>{toastMessage}</span>
+        <div className="fixed top-20 right-6 z-50 max-w-[min(28rem,calc(100vw-2rem))] bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>
+            {"error" in toastMessage
+              ? localizeError(toastMessage.error, toastMessage.fallbackKey)
+              : t(toastMessage.key, toastMessage.values)}
+          </span>
         </div>
       )}
 
       {/* 1. Breadcrumb Navigation */}
       <nav className="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
         <Link to="/dashboard" className="hover:text-slate-800">
-          Master
+          {t("plans.editor.breadcrumb.master")}
         </Link>
         <span>/</span>
         <Link to="/commercials" className="hover:text-slate-800">
-          Commercials
+          {t("plans.editor.breadcrumb.commercials")}
         </Link>
         <span>/</span>
         <Link to="/commercials/plans" className="hover:text-slate-800">
-          Plans
+          {t("plans.editor.breadcrumb.plans")}
         </Link>
         <span>/</span>
         <span className="text-slate-900 font-bold">
-          {isNew ? "New Plan" : planName || "Edit Plan"}
+          {isNew
+            ? t("plans.editor.breadcrumb.newPlan")
+            : planName || t("plans.editor.breadcrumb.editPlan")}
         </span>
       </nav>
 
@@ -276,7 +284,11 @@ export const PlanEditorPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            {isNew ? "Create Commercial Plan" : `Edit ${planName || "Plan"}`}
+            {isNew
+              ? t("plans.editor.createTitle")
+              : t("plans.editor.editTitle", {
+                  name: planName || t("plans.editor.planFallback"),
+                })}
           </h1>
           {isLoading && <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />}
         </div>
@@ -287,7 +299,7 @@ export const PlanEditorPage: React.FC = () => {
             onClick={() => setShowPreviewModal(true)}
             className="px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
           >
-            Preview Publish Impact
+            {t("plans.editor.previewPublishImpact")}
           </button>
 
           {(isNew ? canCreate : canEdit) && (
@@ -297,7 +309,7 @@ export const PlanEditorPage: React.FC = () => {
               onClick={handleSaveDraft}
               className="px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSaving ? "Saving..." : "Save Draft"}
+              {isSaving ? t("common.saving") : t("plans.editor.saveDraft")}
             </button>
           )}
 
@@ -308,7 +320,7 @@ export const PlanEditorPage: React.FC = () => {
               onClick={handlePublish}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#15803D] hover:bg-[#166534] transition-colors shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>{isSaving ? "Publishing..." : "Publish Plan"}</span>
+              <span>{isSaving ? t("plans.editor.publishing") : t("plans.editor.publishPlan")}</span>
             </button>
           )}
         </div>
@@ -320,20 +332,15 @@ export const PlanEditorPage: React.FC = () => {
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div>
-              <div className="font-bold text-sm">
-                Platform Modules Required Before Creating Plans
-              </div>
-              <p className="mt-0.5 text-amber-700">
-                No platform modules currently exist in the database. Please register platform
-                modules first before configuring a commercial plan.
-              </p>
+              <div className="font-bold text-sm">{t("plans.editor.modulesRequired.title")}</div>
+              <p className="mt-0.5 text-amber-700">{t("plans.editor.modulesRequired.body")}</p>
             </div>
           </div>
           <Link
             to="/commercials/modules"
             className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-amber-900 bg-amber-200/70 hover:bg-amber-200 transition-colors"
           >
-            <span>Go to Platform Modules &rarr;</span>
+            <span>{t("plans.editor.goToModules")}</span>
           </Link>
         </div>
       )}
@@ -342,10 +349,7 @@ export const PlanEditorPage: React.FC = () => {
       {hasUnsavedChanges && (
         <div className="bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] rounded-xl px-4 py-2.5 text-xs font-medium flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-          <span>
-            You have unsaved module limit changes. Previewing impact is recommended prior to
-            publishing.
-          </span>
+          <span>{t("plans.editor.unsavedChanges")}</span>
         </div>
       )}
 
@@ -355,18 +359,20 @@ export const PlanEditorPage: React.FC = () => {
         <div className="lg:col-span-5 space-y-6">
           {/* Card 1: Plan Basics */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5">
-            <h2 className="text-sm font-bold text-slate-900 tracking-tight">Plan Basics</h2>
+            <h2 className="text-sm font-bold text-slate-900 tracking-tight">
+              {t("plans.editor.basics.title")}
+            </h2>
 
             {/* Row 0: Plan Name & Plan Code */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1.5">
-                  PLAN NAME *
+                  {t("plans.editor.basics.planName")}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Standard Growth"
+                  placeholder={t("plans.editor.basics.planNamePlaceholder")}
                   value={planName}
                   onChange={(e) => {
                     setPlanName(e.target.value);
@@ -386,12 +392,12 @@ export const PlanEditorPage: React.FC = () => {
 
               <div>
                 <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1.5">
-                  PLAN CODE (SLUG) *
+                  {t("plans.editor.basics.planCode")}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. standard_growth"
+                  placeholder={t("plans.editor.basics.planCodePlaceholder")}
                   value={planCode}
                   onChange={(e) => {
                     setPlanCode(e.target.value);
@@ -405,11 +411,11 @@ export const PlanEditorPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1.5">
-                  PRICE (INR) *
+                  {t("plans.editor.basics.price")}
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 4999"
+                  placeholder={t("plans.editor.basics.pricePlaceholder")}
                   value={price}
                   onChange={(e) => {
                     setPrice(e.target.value);
@@ -421,7 +427,7 @@ export const PlanEditorPage: React.FC = () => {
 
               <div>
                 <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1.5">
-                  BILLING CADENCE
+                  {t("plans.editor.basics.billingCadence")}
                 </label>
                 <select
                   value={billingCadence}
@@ -431,15 +437,15 @@ export const PlanEditorPage: React.FC = () => {
                   }}
                   className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 >
-                  <option value="Monthly">Monthly</option>
-                  <option value="Quarterly">Quarterly</option>
-                  <option value="Annual">Annual</option>
+                  <option value="Monthly">{cadenceLabel(t, "Monthly")}</option>
+                  <option value="Quarterly">{cadenceLabel(t, "Quarterly")}</option>
+                  <option value="Annual">{cadenceLabel(t, "Annual")}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1.5">
-                  TRIAL PERIOD (DAYS)
+                  {t("plans.editor.basics.trialDays")}
                 </label>
                 <input
                   type="number"
@@ -455,7 +461,7 @@ export const PlanEditorPage: React.FC = () => {
 
               <div>
                 <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1.5">
-                  EFFECTIVE DATE
+                  {t("plans.editor.basics.effectiveDate")}
                 </label>
                 <input
                   type="date"
@@ -473,14 +479,14 @@ export const PlanEditorPage: React.FC = () => {
           {/* Card 2: Hard Provision Limits */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
             <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-              Hard Provision Limits
+              {t("plans.editor.limits.title")}
             </h2>
 
             <div className="space-y-4">
               {/* Row 1: Locations allowed */}
               <div className="flex items-center justify-between gap-4">
                 <span className="text-xs font-medium text-slate-800 min-w-[120px]">
-                  Locations allowed
+                  {t("plans.editor.limits.locationsAllowed")}
                 </span>
                 <input
                   type="number"
@@ -493,14 +499,14 @@ export const PlanEditorPage: React.FC = () => {
                   className="w-20 text-center bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
                 <span className="text-[11px] text-slate-400 text-right flex-1">
-                  Defines maximum tenant deployment sites
+                  {t("plans.editor.limits.locationsHint")}
                 </span>
               </div>
 
               {/* Row 2: Core admin users */}
               <div className="flex items-center justify-between gap-4">
                 <span className="text-xs font-medium text-slate-800 min-w-[120px]">
-                  Core admin users
+                  {t("plans.editor.limits.coreAdminUsers")}
                 </span>
                 <input
                   type="number"
@@ -513,7 +519,7 @@ export const PlanEditorPage: React.FC = () => {
                   className="w-20 text-center bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
                 <span className="text-[11px] text-slate-400 text-right flex-1">
-                  Total master administration personnel permitted
+                  {t("plans.editor.limits.coreAdminUsersHint")}
                 </span>
               </div>
             </div>
@@ -523,19 +529,17 @@ export const PlanEditorPage: React.FC = () => {
         {/* Right Column: Included Platform Modules */}
         <div className="lg:col-span-7">
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-                  Included Platform Modules
+                  {t("plans.editor.bundle.title")}
                 </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Select which modular capabilities are enabled for this commercial tier.
-                </p>
+                <p className="text-xs text-slate-500 mt-0.5">{t("plans.editor.bundle.subtitle")}</p>
               </div>
               <div className="flex items-center gap-2">
                 {!isLoading && modules.length > 0 && (
                   <span className="text-xs font-extrabold text-[#15803D] tracking-wider uppercase">
-                    {selectedCount} SELECTED
+                    {t("plans.editor.bundle.selected", { value: selectedCount })}
                   </span>
                 )}
               </div>
@@ -545,23 +549,24 @@ export const PlanEditorPage: React.FC = () => {
             {isLoading ? (
               <div className="py-12 text-center">
                 <Loader2 className="w-6 h-6 text-slate-400 animate-spin mx-auto mb-2" />
-                <p className="text-xs text-slate-500 font-medium">Loading platform modules...</p>
+                <p className="text-xs text-slate-500 font-medium">
+                  {t("plans.editor.bundle.loading")}
+                </p>
               </div>
             ) : modules.length === 0 ? (
               <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/50 p-8 text-center space-y-3">
                 <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto" />
                 <div className="text-sm font-bold text-amber-900">
-                  No Platform Modules Available
+                  {t("plans.editor.bundle.emptyTitle")}
                 </div>
                 <p className="text-xs text-amber-700 max-w-sm mx-auto">
-                  No platform modules currently exist in the database. You must register platform
-                  modules first before configuring commercial plan bundles.
+                  {t("plans.editor.bundle.emptyBody")}
                 </p>
                 <Link
                   to="/commercials/modules"
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 transition-colors shadow-2xs"
                 >
-                  <span>Go to Platform Modules &rarr;</span>
+                  <span>{t("plans.editor.goToModules")}</span>
                 </Link>
               </div>
             ) : (
@@ -596,7 +601,7 @@ export const PlanEditorPage: React.FC = () => {
 
                     {mod.isFuture && (
                       <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
-                        FUTURE
+                        {t("plans.editor.bundle.future")}
                       </span>
                     )}
                   </div>
@@ -614,7 +619,7 @@ export const PlanEditorPage: React.FC = () => {
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Plans</span>
+          <span>{t("plans.editor.backToPlans")}</span>
         </Link>
       </div>
 
@@ -623,10 +628,13 @@ export const PlanEditorPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-100 space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-base">Publish Impact Preview</h3>
+              <h3 className="font-bold text-slate-900 text-base">
+                {t("plans.editor.preview.title")}
+              </h3>
               <button
                 type="button"
                 onClick={() => setShowPreviewModal(false)}
+                aria-label={t("common.close")}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-4 h-4" />
@@ -635,48 +643,61 @@ export const PlanEditorPage: React.FC = () => {
 
             <div className="space-y-3 text-xs text-slate-600">
               <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800">
-                <span className="font-bold">Review Plan Configuration:</span> Active tenant
-                subscriptions assigned to this tier will immediately reflect these limits upon
-                publishing.
+                <span className="font-bold">{t("plans.editor.preview.reviewTitle")}</span>{" "}
+                {t("plans.editor.preview.reviewBody")}
               </div>
 
               <div className="space-y-2 border border-slate-100 rounded-xl p-3 bg-slate-50">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Plan Name:</span>
-                  <span className="font-bold text-slate-800">{planName || "Untitled Plan"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Plan Code:</span>
-                  <span className="font-mono font-bold text-slate-800">{planCode || "-"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Price:</span>
-                  <span className="font-bold text-slate-800">
-                    {currency} {price || "0"} / {billingCadence}
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-500">{t("plans.editor.preview.planName")}</span>
+                  <span className="font-bold text-slate-800 text-right">
+                    {planName || t("plans.editor.preview.untitled")}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Active Modules:</span>
-                  <span className="font-bold text-emerald-700">{selectedCount} Included</span>
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-500">{t("plans.editor.preview.planCode")}</span>
+                  <span className="font-mono font-bold text-slate-800 text-right">
+                    {planCode || "-"}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Max Locations:</span>
-                  <span className="font-bold text-slate-800">{locationsAllowed} Allowed</span>
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-500">{t("plans.editor.preview.price")}</span>
+                  <span className="font-bold text-slate-800 text-right">
+                    {t("plans.editor.preview.priceValue", {
+                      currency,
+                      price: price || "0",
+                      cadence: cadenceLabel(t, billingCadence),
+                    })}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Admin Seats:</span>
-                  <span className="font-bold text-slate-800">{coreAdminUsers} Users</span>
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-500">{t("plans.editor.preview.activeModules")}</span>
+                  <span className="font-bold text-emerald-700 text-right">
+                    {t("plans.editor.preview.modulesIncluded", { value: selectedCount })}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-500">{t("plans.editor.preview.maxLocations")}</span>
+                  <span className="font-bold text-slate-800 text-right">
+                    {t("plans.editor.preview.locationsAllowed", { value: locationsAllowed })}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-slate-500">{t("plans.editor.preview.adminSeats")}</span>
+                  <span className="font-bold text-slate-800 text-right">
+                    {t("plans.editor.preview.adminUsers", { value: coreAdminUsers })}
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setShowPreviewModal(false)}
                 className="px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 cursor-pointer"
               >
-                Close Preview
+                {t("plans.editor.preview.close")}
               </button>
               <button
                 type="button"
@@ -687,7 +708,7 @@ export const PlanEditorPage: React.FC = () => {
                 }}
                 className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#15803D] hover:bg-[#166534] disabled:opacity-50 cursor-pointer"
               >
-                Confirm & Request Publish
+                {t("plans.editor.preview.confirm")}
               </button>
             </div>
           </div>

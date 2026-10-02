@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import {
   UtensilsCrossed,
   Wrench,
@@ -16,10 +17,15 @@ import {
 import { organizationApi } from "../api";
 import { Organization, Pagination } from "../@types";
 import { usePermissions } from "../hooks/use-permissions";
+import { useFormat } from "../i18n/useFormat";
+import { codeLabel, statusLabel } from "../i18n/labels";
+import { localizeError } from "../i18n/errors";
 
 export const Organization360Page: React.FC = () => {
   const navigate = useNavigate();
   const { can } = usePermissions();
+  const { t } = useTranslation();
+  const f = useFormat();
 
   const canReviewPartner =
     can("feat_partner_review", "approve_partner") ||
@@ -63,7 +69,8 @@ export const Organization360Page: React.FC = () => {
     status: "Draft",
   });
   const [formSubmitting, setFormSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  // Keep the ERROR (not its text) so the message re-translates if the language changes.
+  const [formError, setFormError] = useState<{ error: unknown } | null>(null);
 
   // Feedback notifications
   const [notification, setNotification] = useState<{
@@ -119,7 +126,7 @@ export const Organization360Page: React.FC = () => {
       );
     } catch (err: any) {
       console.error("Failed to load organizations from database:", err);
-      showNotification(err.message || "Failed to load organizations", "error");
+      showNotification(localizeError(err, "orgs.directory.loadFailed"), "error");
     } finally {
       setLoading(false);
     }
@@ -165,12 +172,14 @@ export const Organization360Page: React.FC = () => {
         status: newOrgForm.status,
       });
 
-      showNotification(`Created organization: "${response.organization.business_name}"`);
+      showNotification(
+        t("orgs.directory.toast.created", { name: response.organization.business_name })
+      );
       setAddModalOpen(false);
       fetchOrganizations();
       fetchKpiCounts();
     } catch (err: any) {
-      setFormError(err.message || "Failed to create organization");
+      setFormError({ error: err });
     } finally {
       setFormSubmitting(false);
     }
@@ -187,20 +196,23 @@ export const Organization360Page: React.FC = () => {
 
     try {
       await organizationApi.delete(organizationToDelete.id);
-      showNotification(`Deleted organization: "${organizationToDelete.business_name}"`, "info");
+      showNotification(
+        t("orgs.directory.toast.deleted", { name: organizationToDelete.business_name }),
+        "info"
+      );
       setDeleteModalOpen(false);
       setOrganizationToDelete(null);
       fetchOrganizations();
       fetchKpiCounts();
     } catch (err: any) {
-      alert(`Delete failed: ${err.message}`);
+      alert(t("orgs.directory.deleteFailed", { reason: localizeError(err) }));
     }
   };
 
   // 5. Export to CSV Handler
   const handleExportCSV = () => {
     if (organizations.length === 0) {
-      showNotification("No organization records available to export", "info");
+      showNotification(t("orgs.directory.toast.nothingToExport"), "info");
       return;
     }
     const headers = [
@@ -232,7 +244,7 @@ export const Organization360Page: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showNotification(`Exported ${organizations.length} organization records to CSV.`);
+    showNotification(t("orgs.directory.toast.exported", { total: f.number(organizations.length) }));
   };
 
   return (
@@ -258,22 +270,22 @@ export const Organization360Page: React.FC = () => {
       {/* ============================================================== */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Partner Applications</h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage and inspect partner registrations, onboarding progress, and credentials
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            {t("orgs.directory.title")}
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">{t("orgs.directory.subtitle")}</p>
         </div>
 
         {/* Action Buttons: Export & Add Partner */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           {can("feat_org_360", "export_org_csv") && (
             <button
               onClick={handleExportCSV}
               className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200/90 rounded-xl hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
-              title="Export records to CSV"
+              title={t("orgs.directory.exportTitle")}
             >
               <Download className="w-3.5 h-3.5 text-slate-500" />
-              <span>Export</span>
+              <span>{t("common.export")}</span>
             </button>
           )}
 
@@ -281,7 +293,7 @@ export const Organization360Page: React.FC = () => {
             onClick={fetchOrganizations}
             disabled={loading}
             className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
-            title="Refresh database records"
+            title={t("orgs.directory.refreshTitle")}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
@@ -292,7 +304,7 @@ export const Organization360Page: React.FC = () => {
               onClick={handleOpenAddModal}
               className="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-2xs transition-colors cursor-pointer"
             >
-              Add Partner
+              {t("orgs.directory.addPartner")}
             </button>
           )}
         </div>
@@ -321,9 +333,11 @@ export const Organization360Page: React.FC = () => {
           </div>
           <div>
             <div className="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">
-              {kpiCounts.restaurants}
+              {f.number(kpiCounts.restaurants)}
             </div>
-            <div className="text-xs text-slate-400 font-medium mt-1">Restaurants</div>
+            <div className="text-xs text-slate-400 font-medium mt-1">
+              {t("orgs.directory.kpi.restaurants")}
+            </div>
           </div>
         </div>
 
@@ -344,9 +358,11 @@ export const Organization360Page: React.FC = () => {
           </div>
           <div>
             <div className="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">
-              {kpiCounts.services}
+              {f.number(kpiCounts.services)}
             </div>
-            <div className="text-xs text-slate-400 font-medium mt-1">Service Providers</div>
+            <div className="text-xs text-slate-400 font-medium mt-1">
+              {t("orgs.directory.kpi.services")}
+            </div>
           </div>
         </div>
 
@@ -369,9 +385,11 @@ export const Organization360Page: React.FC = () => {
           </div>
           <div>
             <div className="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">
-              {kpiCounts.logistics}
+              {f.number(kpiCounts.logistics)}
             </div>
-            <div className="text-xs text-slate-400 font-medium mt-1">Logistics Fleet</div>
+            <div className="text-xs text-slate-400 font-medium mt-1">
+              {t("orgs.directory.kpi.logistics")}
+            </div>
           </div>
         </div>
       </div>
@@ -381,7 +399,7 @@ export const Organization360Page: React.FC = () => {
       {/* ============================================================== */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
         {/* Left: Status Filter Segment Tabs (All, Pending, Approved, Rejected) */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+        <div className="flex flex-wrap items-center gap-2">
           {(["All", "Pending", "Approved", "Rejected"] as const).map((tab) => {
             const isActive = activeStatusTab === tab;
             return (
@@ -391,20 +409,20 @@ export const Organization360Page: React.FC = () => {
                   setActiveStatusTab(tab);
                   setCurrentPage(1);
                 }}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-2xs whitespace-nowrap ${
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
                   isActive
                     ? "bg-slate-900 text-white"
                     : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200/90 hover:bg-slate-50"
                 }`}
               >
-                {tab}
+                {tab === "All" ? t("common.all") : statusLabel(t, tab)}
               </button>
             );
           })}
         </div>
 
         {/* Right: Search Input & Domain Type Dropdown */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Search box */}
           <div className="relative w-full sm:w-60">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -415,7 +433,7 @@ export const Organization360Page: React.FC = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Search..."
+              placeholder={t("common.searchPlaceholder")}
               className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200/90 bg-white placeholder:text-slate-400 text-slate-800 outline-none focus:border-[#65D000] focus:ring-1 focus:ring-[#65D000]/20 shadow-2xs transition-all"
             />
           </div>
@@ -430,10 +448,14 @@ export const Organization360Page: React.FC = () => {
               }}
               className="appearance-none bg-white border border-slate-200/90 rounded-xl px-3.5 py-1.5 pr-8 text-xs text-slate-700 font-semibold focus:border-[#65D000] outline-none shadow-2xs cursor-pointer"
             >
-              <option value="All Types">All Types</option>
-              <option value="Restaurant">Restaurant</option>
-              <option value="Logistics">Logistics</option>
-              <option value="Service">Service</option>
+              <option value="All Types">{t("orgs.directory.allTypes")}</option>
+              <option value="Restaurant">
+                {codeLabel(t, "orgs.directory.domain", "Restaurant")}
+              </option>
+              <option value="Logistics">
+                {codeLabel(t, "orgs.directory.domain", "Logistics")}
+              </option>
+              <option value="Service">{codeLabel(t, "orgs.directory.domain", "Service")}</option>
             </select>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
@@ -448,7 +470,7 @@ export const Organization360Page: React.FC = () => {
           <div className="bg-white rounded-2xl border border-slate-200/80 p-12 text-center shadow-2xs">
             <div className="flex items-center justify-center gap-2.5 text-slate-600">
               <RefreshCw className="w-5 h-5 animate-spin text-[#65D000]" />
-              <span className="text-xs font-semibold">Loading organizations from database...</span>
+              <span className="text-xs font-semibold">{t("orgs.directory.loading")}</span>
             </div>
           </div>
         ) : organizations.length === 0 ? (
@@ -456,9 +478,9 @@ export const Organization360Page: React.FC = () => {
             <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400 mb-3">
               <Search className="w-6 h-6" />
             </div>
-            <h3 className="text-sm font-bold text-slate-800">No organizations found</h3>
+            <h3 className="text-sm font-bold text-slate-800">{t("orgs.directory.emptyTitle")}</h3>
             <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-              No organization records match your active status tab, domain filter, or search term.
+              {t("orgs.directory.emptyBody")}
             </p>
             <button
               onClick={() => {
@@ -469,7 +491,7 @@ export const Organization360Page: React.FC = () => {
               }}
               className="mt-4 px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
             >
-              Clear Filters
+              {t("orgs.directory.clearFilters")}
             </button>
           </div>
         ) : (
@@ -512,7 +534,7 @@ export const Organization360Page: React.FC = () => {
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 grid grid-cols-1 md:grid-cols-[minmax(200px,1fr)_240px_110px_195px] items-center gap-4 lg:gap-6 shadow-2xs hover:border-slate-300 transition-all"
+                className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 grid grid-cols-1 md:grid-cols-[minmax(200px,1fr)_240px_110px_minmax(195px,auto)] items-center gap-4 lg:gap-6 shadow-2xs hover:border-slate-300 transition-all"
               >
                 {/* 1. Left Column: Business Name, Domain Badge, Contact Info */}
                 <div className="min-w-0">
@@ -523,7 +545,7 @@ export const Organization360Page: React.FC = () => {
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border ${badgeStyle} shrink-0`}
                     >
-                      {item.domain}
+                      {codeLabel(t, "orgs.directory.domain", item.domain)}
                     </span>
                   </div>
                   <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 flex-wrap truncate">
@@ -535,9 +557,13 @@ export const Organization360Page: React.FC = () => {
 
                 {/* 2. Middle Column: Onboarding Completion Progress Bar (Fixed 240px on desktop) */}
                 <div className="w-full md:w-[240px]">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-slate-700">Onboarding Completion</span>
-                    <span className="font-bold text-slate-900">{progressPercentage}%</span>
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="font-bold text-slate-700">
+                      {t("orgs.directory.row.completion")}
+                    </span>
+                    <span className="font-bold text-slate-900">
+                      {f.number(progressPercentage)}%
+                    </span>
                   </div>
 
                   {/* Progress Bar Track */}
@@ -549,27 +575,30 @@ export const Organization360Page: React.FC = () => {
                   </div>
 
                   <div className="text-[11px] text-slate-400 mt-1 font-medium">
-                    {stepsCompleted}/9 steps completed
+                    {t("orgs.directory.row.stepsCompleted", {
+                      done: f.number(stepsCompleted),
+                      total: f.number(9),
+                    })}
                   </div>
                 </div>
 
                 {/* 3. Status Column: Fixed 110px width & centered (guarantees Suspended never misaligns adjacent sections) */}
                 <div className="w-full md:w-[110px] flex items-center md:justify-center">
                   <span
-                    className={`inline-flex items-center justify-center w-24 py-1 rounded-full text-xs font-semibold border text-center ${statusBadge}`}
+                    className={`inline-flex items-center justify-center min-w-24 max-w-full px-2 py-1 rounded-full text-xs font-semibold border text-center ${statusBadge}`}
                   >
-                    {item.status}
+                    {statusLabel(t, item.status)}
                   </span>
                 </div>
 
                 {/* 4. Action Buttons Column: right-aligned */}
-                <div className="w-full md:w-auto flex items-center md:justify-end gap-2">
+                <div className="w-full md:w-auto flex flex-wrap items-center md:justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => navigate(`/organizations/${item.id}`)}
                     className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200/90 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                   >
-                    View
+                    {t("common.view")}
                   </button>
 
                   {canReviewPartner && (
@@ -578,7 +607,7 @@ export const Organization360Page: React.FC = () => {
                       onClick={() => navigate(`/organizations/${item.id}`)}
                       className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200/90 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
                     >
-                      Review
+                      {t("orgs.directory.row.review")}
                     </button>
                   )}
 
@@ -588,7 +617,7 @@ export const Organization360Page: React.FC = () => {
                       onClick={() => handleOpenDeleteModal(item)}
                       className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-white border border-rose-200 rounded-xl hover:bg-rose-50 transition-colors shadow-2xs cursor-pointer"
                     >
-                      Delete
+                      {t("common.delete")}
                     </button>
                   )}
                 </div>
@@ -603,7 +632,10 @@ export const Organization360Page: React.FC = () => {
       {/* ============================================================== */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
         <div className="text-xs text-slate-400 font-medium">
-          Showing {organizations.length} of {pagination.total} partner applications
+          {t("orgs.directory.showing", {
+            shown: f.number(organizations.length),
+            total: f.number(pagination.total),
+          })}
         </div>
 
         <div className="flex items-center gap-2">
@@ -612,14 +644,14 @@ export const Organization360Page: React.FC = () => {
             disabled={currentPage === 1 || loading}
             className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200/90 rounded-lg hover:bg-slate-50 shadow-2xs disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
           >
-            Previous
+            {t("common.previous")}
           </button>
           <button
             onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
             disabled={currentPage >= pagination.totalPages || loading}
             className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200/90 rounded-lg hover:bg-slate-50 shadow-2xs disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
           >
-            Next
+            {t("common.next")}
           </button>
         </div>
       </div>
@@ -633,10 +665,10 @@ export const Organization360Page: React.FC = () => {
             {/* Modal Header: Title and subtitle without plus symbol box */}
             <div className="flex items-center justify-between p-4 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Add New Partner Application</h3>
-                <p className="text-[11px] text-slate-400">
-                  Register and initiate onboarding for a partner entity
-                </p>
+                <h3 className="text-sm font-bold text-slate-900">
+                  {t("orgs.directory.form.title")}
+                </h3>
+                <p className="text-[11px] text-slate-400">{t("orgs.directory.form.subtitle")}</p>
               </div>
               <button
                 onClick={() => setAddModalOpen(false)}
@@ -650,18 +682,18 @@ export const Organization360Page: React.FC = () => {
               {formError && (
                 <div className="p-3 rounded-xl bg-rose-50 border border-rose-200/80 text-rose-700 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
-                  <span>{formError}</span>
+                  <span>{localizeError(formError.error, "orgs.directory.createFailed")}</span>
                 </div>
               )}
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Business / Partner Name <span className="text-rose-500">*</span>
+                  {t("orgs.directory.form.businessName")} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Spice Route Kitchen Corp"
+                  placeholder={t("orgs.directory.form.businessNamePlaceholder")}
                   value={newOrgForm.business_name}
                   onChange={(e) => setNewOrgForm({ ...newOrgForm, business_name: e.target.value })}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:border-[#65D000] focus:ring-1 focus:ring-[#65D000]/20"
@@ -670,41 +702,51 @@ export const Organization360Page: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Domain Type</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {t("orgs.directory.form.domainType")}
+                  </label>
                   <select
                     value={newOrgForm.domain}
                     onChange={(e) => setNewOrgForm({ ...newOrgForm, domain: e.target.value })}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:border-[#65D000] bg-white cursor-pointer"
                   >
-                    <option value="Restaurant">Restaurant</option>
-                    <option value="Logistics">Logistics</option>
-                    <option value="Service">Service</option>
+                    <option value="Restaurant">
+                      {codeLabel(t, "orgs.directory.domain", "Restaurant")}
+                    </option>
+                    <option value="Logistics">
+                      {codeLabel(t, "orgs.directory.domain", "Logistics")}
+                    </option>
+                    <option value="Service">
+                      {codeLabel(t, "orgs.directory.domain", "Service")}
+                    </option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Status</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {t("common.status")}
+                  </label>
                   <select
                     value={newOrgForm.status}
                     onChange={(e) => setNewOrgForm({ ...newOrgForm, status: e.target.value })}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:border-[#65D000] bg-white cursor-pointer"
                   >
-                    <option value="Active">Active</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Draft">Draft</option>
-                    <option value="Suspended">Suspended</option>
+                    <option value="Active">{statusLabel(t, "Active")}</option>
+                    <option value="Pending">{statusLabel(t, "Pending")}</option>
+                    <option value="Draft">{statusLabel(t, "Draft")}</option>
+                    <option value="Suspended">{statusLabel(t, "Suspended")}</option>
                   </select>
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Contact Email <span className="text-rose-500">*</span>
+                  {t("orgs.directory.form.contactEmail")} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="email"
                   required
-                  placeholder="e.g. contact@spiceroute.com"
+                  placeholder={t("orgs.directory.form.emailPlaceholder")}
                   value={newOrgForm.email}
                   onChange={(e) => setNewOrgForm({ ...newOrgForm, email: e.target.value })}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:border-[#65D000] focus:ring-1 focus:ring-[#65D000]/20"
@@ -713,12 +755,12 @@ export const Organization360Page: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Phone Number <span className="text-rose-500">*</span>
+                  {t("orgs.directory.form.phoneNumber")} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="+1 (555) 082-1920"
+                  placeholder={t("orgs.directory.form.phonePlaceholder")}
                   value={newOrgForm.phone_number}
                   onChange={(e) => setNewOrgForm({ ...newOrgForm, phone_number: e.target.value })}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:border-[#65D000] focus:ring-1 focus:ring-[#65D000]/20"
@@ -731,14 +773,16 @@ export const Organization360Page: React.FC = () => {
                   onClick={() => setAddModalOpen(false)}
                   className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={formSubmitting}
                   className="px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  {formSubmitting ? "Creating..." : "Create Application"}
+                  {formSubmitting
+                    ? t("orgs.directory.form.creating")
+                    : t("orgs.directory.form.submit")}
                 </button>
               </div>
             </form>
@@ -756,14 +800,16 @@ export const Organization360Page: React.FC = () => {
               <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 shrink-0">
                 <Trash2 className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">Delete Organization</h3>
+              <h3 className="text-base font-bold text-slate-900">
+                {t("orgs.directory.delete.title")}
+              </h3>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Are you sure you want to permanently delete{" "}
-              <strong className="text-slate-800 font-bold">
-                {organizationToDelete.business_name}
-              </strong>{" "}
-              from the database? This action cannot be undone.
+              <Trans
+                i18nKey="orgs.directory.delete.body"
+                values={{ name: organizationToDelete.business_name }}
+                components={{ strong: <strong className="text-slate-800 font-bold" /> }}
+              />
             </p>
 
             <div className="flex items-center justify-end gap-2 mt-5">
@@ -771,13 +817,13 @@ export const Organization360Page: React.FC = () => {
                 onClick={() => setDeleteModalOpen(false)}
                 className="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleConfirmDelete}
                 className="px-4 py-1.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-2xs transition-colors cursor-pointer"
               >
-                Confirm Delete
+                {t("orgs.directory.delete.confirm")}
               </button>
             </div>
           </div>

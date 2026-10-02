@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ApiError } from "./api-error";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
@@ -29,7 +30,8 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor to format API errors with clear validation and network error details
+// Interceptor to turn every failure into an ApiError (server text + errorCode + status).
+// Show it to people with localizeError(err) from "../i18n/errors" so it appears in their language.
 apiClient.interceptors.response.use(
   (response) => {
     if (import.meta.env.DEV) {
@@ -42,34 +44,39 @@ apiClient.interceptors.response.use(
       console.error(`[API Error] ${error.config?.url}:`, error.response?.data || error.message);
     }
 
-    // 1. Connection / Server unreachable error
+    // 1. Connection / server unreachable
     if (!error.response) {
       return Promise.reject(
-        new Error(
-          "Cannot reach the backend server. Please verify the backend is running on http://localhost:8000."
+        new ApiError(
+          "Cannot reach the backend server. Please verify the backend is running on http://localhost:8000.",
+          { isNetworkError: true }
         )
       );
     }
 
-    // 2. Structured Zod Validation Errors from backend
-    if (
-      error.response.data?.errors &&
-      Array.isArray(error.response.data.errors) &&
-      error.response.data.errors.length > 0
-    ) {
-      const messages = error.response.data.errors
-        .map((err: { field?: string; message: string }) => err.message)
-        .filter(Boolean)
-        .join(". ");
-      return Promise.reject(new Error(messages || "Validation failed"));
+    const status: number | undefined = error.response.status;
+    const data = error.response.data ?? {};
+    const errorCode: string | undefined = data.errorCode;
+
+    // 2. Structured Zod validation errors from the backend
+    if (Array.isArray(data.errors) && data.errors.length > 0) {
+      const fieldErrors = data.errors
+        .filter((e: { message?: string }) => Boolean(e?.message))
+        .map((e: { field?: string; message: string }) => ({ field: e.field, message: e.message }));
+      const messages = fieldErrors.map((e: { message: string }) => e.message).join(". ");
+      return Promise.reject(
+        new ApiError(messages || "Validation failed", { status, errorCode, fieldErrors })
+      );
     }
 
     // 3. Application error message (AppError / custom message)
-    if (error.response.data?.message) {
-      return Promise.reject(new Error(error.response.data.message));
+    if (data.message) {
+      return Promise.reject(new ApiError(data.message, { status, errorCode }));
     }
 
     // 4. Fallback status error
-    return Promise.reject(new Error(error.message || "An unexpected error occurred"));
+    return Promise.reject(
+      new ApiError(error.message || "An unexpected error occurred", { status, errorCode })
+    );
   }
 );

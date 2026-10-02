@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import { useTranslation } from "react-i18next";
 import { AuthContext } from "../context/auth-context";
 import { FeaturePermission } from "../api/role.api";
 
@@ -14,6 +15,7 @@ export interface UsePermissionsReturn {
  * Custom React hook for checking feature-by-feature and action-level authorization
  */
 export const usePermissions = (): UsePermissionsReturn => {
+  const { t } = useTranslation();
   const authContext = useContext(AuthContext);
   const user = authContext?.user;
 
@@ -55,7 +57,7 @@ export const usePermissions = (): UsePermissionsReturn => {
     return can(featureId);
   };
 
-  const roleName = user?.role_details?.name || "Unassigned";
+  const roleName = user?.role_details?.name || t("common.unassigned");
 
   return {
     permissions,

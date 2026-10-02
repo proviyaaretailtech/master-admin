@@ -1,22 +1,29 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../hooks/use-auth";
 import { AlertTriangle } from "lucide-react";
+import { LanguageRadioGroup } from "../components/i18n/LanguageRadioGroup";
+import { localizeError } from "../i18n/errors";
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Keep the ERROR (not its text) so the banner re-translates if the language is switched.
+  const [loginError, setLoginError] = useState<{ error: unknown; fallbackKey: string } | null>(
+    null
+  );
   const [hasError, setHasError] = useState(false);
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
 
+  const { t } = useTranslation();
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null);
+    setLoginError(null);
     setHasError(false);
     setLoading(true);
 
@@ -29,9 +36,7 @@ export const LoginPage: React.FC = () => {
       if (error) {
         console.error("[LoginPage] Login failed:", error.message);
         setHasError(true);
-        setErrorMessage(
-          error.message || "Invalid email or password. Please check your credentials and try again."
-        );
+        setLoginError({ error, fallbackKey: "auth.invalidCredentials" });
         setRemainingAttempts((prev) => (prev === null ? 2 : Math.max(0, prev - 1)));
       } else {
         console.log("[LoginPage] Logged in successfully:", user);
@@ -41,12 +46,17 @@ export const LoginPage: React.FC = () => {
       console.error("[LoginPage] Unexpected error during login:", err);
       setLoading(false);
       setHasError(true);
-      setErrorMessage(err?.message || "An unexpected error occurred. Please try again.");
+      setLoginError({ error: err, fallbackKey: "auth.unexpected" });
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F4F5F7] px-4 py-8">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#F4F5F7] px-4 py-8">
+      {/* Language picker: usable before signing in */}
+      <div className="absolute right-4 top-4 z-10">
+        <LanguageRadioGroup variant="compact" />
+      </div>
+
       <div className="w-full max-w-[440px] bg-white rounded-3xl shadow-sm border border-slate-100 p-8 sm:p-10 transition-all">
         {/* Logo Badge */}
         <div className="flex justify-center">
@@ -58,7 +68,7 @@ export const LoginPage: React.FC = () => {
         {/* Header Text */}
         <div className="text-center mt-5 space-y-1">
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            Super Admin
+            {t("auth.title")}
           </h1>
         </div>
 
@@ -67,8 +77,9 @@ export const LoginPage: React.FC = () => {
           <div className="mt-5 rounded-xl bg-[#FFF5F5] border border-[#FEB2B2] p-3 flex items-start gap-2.5 text-xs text-[#E53E3E] transition-all">
             <AlertTriangle className="h-4 w-4 shrink-0 text-[#E53E3E] mt-0.5" />
             <span className="leading-tight font-medium">
-              {errorMessage ||
-                "Invalid email or password. Please check your credentials and try again."}
+              {loginError
+                ? localizeError(loginError.error, loginError.fallbackKey)
+                : t("auth.invalidCredentials")}
             </span>
           </div>
         )}
@@ -78,7 +89,7 @@ export const LoginPage: React.FC = () => {
           {/* Email Address */}
           <div>
             <label htmlFor="email" className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Email Address
+              {t("auth.emailLabel")}
             </label>
             <input
               id="email"
@@ -102,14 +113,14 @@ export const LoginPage: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label htmlFor="password" className="block text-xs font-semibold text-slate-700">
-                Password
+                {t("auth.passwordLabel")}
               </label>
               <button
                 type="button"
                 className="text-[11px] font-medium text-[#65D000] hover:underline hover:text-[#55b300]"
-                onClick={() => alert("Password reset link will be sent to your email address.")}
+                onClick={() => alert(t("auth.forgotPasswordNotice"))}
               >
-                Forgot password?
+                {t("auth.forgotPassword")}
               </button>
             </div>
             <input
@@ -130,7 +141,7 @@ export const LoginPage: React.FC = () => {
             />
             {hasError && remainingAttempts !== null && (
               <p className="mt-1.5 text-xs text-[#E53E3E] font-medium">
-                Incorrect password. {remainingAttempts} attempts remaining.
+                {t("auth.attemptsRemaining", { count: remainingAttempts })}
               </p>
             )}
           </div>
@@ -144,16 +155,14 @@ export const LoginPage: React.FC = () => {
             {loading ? (
               <div className="flex items-center gap-2">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                <span>Signing In...</span>
+                <span>{t("auth.signingIn")}</span>
               </div>
             ) : (
-              "Sign In"
+              t("auth.signIn")
             )}
           </button>
 
-          <p className="text-center pt-2 text-xs text-slate-500">
-            Access is by invitation from a platform administrator.
-          </p>
+          <p className="text-center pt-2 text-xs text-slate-500">{t("auth.invitationOnly")}</p>
         </form>
       </div>
     </div>

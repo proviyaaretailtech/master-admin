@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Utensils,
   User as UserIcon,
@@ -8,28 +9,45 @@ import {
   Search,
   Download,
 } from "lucide-react";
+import { useFormat } from "../i18n/useFormat";
+import { statusLabel } from "../i18n/labels";
 
 interface PartnerType {
   id: string;
-  name: string;
-  description: string;
+  /** Catalogue id under orgs.pipeline.types.<key> (name + description). */
+  key: "platformAdmin" | "restaurant" | "service" | "logistic";
   icon: React.ElementType;
   iconColor: string;
-  badges: Array<{ label: string; count: number; colorClass: string }>;
+  badges: Array<{ code: "total" | "draft" | "active"; count: number; colorClass: string }>;
 }
+
+/** Display codes for the static sample pipeline; the English wording lives in the catalogue. */
+type StepCode = "kycVerified" | "menuSet" | "documentsPending" | "contractSigned";
+type BusinessTypeCode = "restaurantPartner" | "logistics" | "servicePartner";
 
 interface PipelinePartner {
   id: string;
   partnerId: string;
   businessName: string;
+  /** English type name: used for search and the (English) CSV export. */
   businessType: string;
-  steps: Array<{ label: string; variant: "verified" | "pending" | "dark" | "contract" }>;
+  businessTypeCode: BusinessTypeCode;
+  steps: Array<{
+    code: StepCode;
+    count?: number;
+    variant: "verified" | "pending" | "dark" | "contract";
+  }>;
+  /** English hours text: used for the (English) CSV export. */
   operationalHours: string;
+  /** Set when the hours are words rather than a clock range, so they can be translated. */
+  hoursCode?: "fleet24";
   status: "Online Ready" | "Draft Mode";
   actionType: "Configure" | "Onboard";
 }
 
 export const DashboardPage: React.FC = () => {
+  const { t } = useTranslation();
+  const f = useFormat();
   const [selectedPartnerType, setSelectedPartnerType] = useState<string>("restaurant");
   const [pipelineSearch, setPipelineSearch] = useState<string>("");
 
@@ -37,14 +55,13 @@ export const DashboardPage: React.FC = () => {
   const partnerTypes: PartnerType[] = [
     {
       id: "platform-admin",
-      name: "Platform Admin Partner",
-      description: "Sub-franchise, regional managers, admin roles",
+      key: "platformAdmin",
       icon: UserIcon,
       iconColor: "text-slate-600",
       badges: [
-        { label: "Total", count: 3, colorClass: "bg-slate-100 text-slate-700" },
+        { code: "total", count: 3, colorClass: "bg-slate-100 text-slate-700" },
         {
-          label: "Active",
+          code: "active",
           count: 3,
           colorClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
         },
@@ -52,19 +69,18 @@ export const DashboardPage: React.FC = () => {
     },
     {
       id: "restaurant",
-      name: "Restaurant Partner",
-      description: "Dine-in establishments, cloud kitchens, QSR",
+      key: "restaurant",
       icon: Utensils,
       iconColor: "text-[#65D000]",
       badges: [
-        { label: "Total", count: 24, colorClass: "bg-slate-100 text-slate-700" },
+        { code: "total", count: 24, colorClass: "bg-slate-100 text-slate-700" },
         {
-          label: "Draft",
+          code: "draft",
           count: 3,
           colorClass: "bg-amber-50 text-amber-700 border border-amber-200",
         },
         {
-          label: "Active",
+          code: "active",
           count: 21,
           colorClass: "bg-emerald-50 text-emerald-700 border border-emerald-200",
         },
@@ -72,14 +88,13 @@ export const DashboardPage: React.FC = () => {
     },
     {
       id: "service",
-      name: "Service Partner",
-      description: "Maintenance providers, waste management, repairs",
+      key: "service",
       icon: Wrench,
       iconColor: "text-slate-600",
       badges: [
-        { label: "Total", count: 1, colorClass: "bg-slate-100 text-slate-700" },
+        { code: "total", count: 1, colorClass: "bg-slate-100 text-slate-700" },
         {
-          label: "Draft",
+          code: "draft",
           count: 1,
           colorClass: "bg-amber-50 text-amber-700 border border-amber-200",
         },
@@ -87,11 +102,10 @@ export const DashboardPage: React.FC = () => {
     },
     {
       id: "logistic",
-      name: "Logistic Partner",
-      description: "Fleet operators, delivery drivers, transit routes",
+      key: "logistic",
       icon: Truck,
       iconColor: "text-slate-600",
-      badges: [{ label: "Total", count: 0, colorClass: "bg-slate-100 text-slate-600" }],
+      badges: [{ code: "total", count: 0, colorClass: "bg-slate-100 text-slate-600" }],
     },
   ];
 
@@ -102,9 +116,10 @@ export const DashboardPage: React.FC = () => {
       partnerId: "ON-90822",
       businessName: "The Royal Spice Kitchen",
       businessType: "Rest. Partner",
+      businessTypeCode: "restaurantPartner",
       steps: [
-        { label: "KYC Verified", variant: "verified" },
-        { label: "Menu Set • 45 Items", variant: "dark" },
+        { code: "kycVerified", variant: "verified" },
+        { code: "menuSet", count: 45, variant: "dark" },
       ],
       operationalHours: "10:00 AM - 11:30 PM",
       status: "Online Ready",
@@ -115,8 +130,10 @@ export const DashboardPage: React.FC = () => {
       partnerId: "ON-76221",
       businessName: "Latur Transit Logistics",
       businessType: "Logistics",
-      steps: [{ label: "Documents Pending", variant: "pending" }],
+      businessTypeCode: "logistics",
+      steps: [{ code: "documentsPending", variant: "pending" }],
       operationalHours: "24 Hours Fleet",
+      hoursCode: "fleet24",
       status: "Draft Mode",
       actionType: "Onboard",
     },
@@ -125,18 +142,25 @@ export const DashboardPage: React.FC = () => {
       partnerId: "ON-11029",
       businessName: "Eco-Clean Latur Services",
       businessType: "Service Partner",
-      steps: [{ label: "Contract Signed", variant: "contract" }],
+      businessTypeCode: "servicePartner",
+      steps: [{ code: "contractSigned", variant: "contract" }],
       operationalHours: "08:00 AM - 08:00 PM",
       status: "Online Ready",
       actionType: "Configure",
     },
   ];
 
+  const businessTypeLabel = (code: BusinessTypeCode) => t(`orgs.pipeline.businessType.${code}`);
+  const stepLabel = (step: PipelinePartner["steps"][number]) =>
+    t(`orgs.pipeline.step.${step.code}`, { count: step.count });
+
+  // Search matches the English type name as before, and also the text the user is looking at.
   const filteredPipeline = pipelineData.filter(
     (item) =>
       item.businessName.toLowerCase().includes(pipelineSearch.toLowerCase()) ||
       item.partnerId.toLowerCase().includes(pipelineSearch.toLowerCase()) ||
-      item.businessType.toLowerCase().includes(pipelineSearch.toLowerCase())
+      item.businessType.toLowerCase().includes(pipelineSearch.toLowerCase()) ||
+      businessTypeLabel(item.businessTypeCode).toLowerCase().includes(pipelineSearch.toLowerCase())
   );
 
   const handleExportCSV = () => {
@@ -164,14 +188,13 @@ export const DashboardPage: React.FC = () => {
       {/* ============================================================== */}
       <div>
         <div className="text-[11px] font-extrabold uppercase tracking-wider text-[#65D000]">
-          ONBOARDING SYSTEM
+          {t("orgs.pipeline.eyebrow")}
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-          Onboard new partner onto OneLatur
+          {t("orgs.pipeline.title")}
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-3xl leading-relaxed">
-          Configure and launch &ldquo;Restaurant Partners&rdquo; easily - set store parameters,
-          complete KYC validation, handle contract signing, and trigger system activation.
+          {t("orgs.pipeline.intro")}
         </p>
       </div>
 
@@ -179,16 +202,16 @@ export const DashboardPage: React.FC = () => {
       {/* SELECT PARTNER TYPE CARDS                                      */}
       {/* ============================================================== */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-            SELECT PARTNER TYPE
+            {t("orgs.pipeline.selectType")}
           </h2>
           <button
             type="button"
-            onClick={() => alert("Partner Requirements & Compliance guidelines modal.")}
+            onClick={() => alert(t("orgs.pipeline.requirementsAlert"))}
             className="inline-flex items-center gap-1 text-xs font-bold text-[#65D000] hover:text-[#52a800] hover:underline cursor-pointer"
           >
-            <span>Learn about requirements</span>
+            <span>{t("orgs.pipeline.learnRequirements")}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -212,7 +235,7 @@ export const DashboardPage: React.FC = () => {
                 {/* Active Selection Badge on Top Right */}
                 {isSelected && (
                   <div className="absolute top-3.5 right-3.5 bg-[#EBF9E5] text-[#3E8800] text-[10px] font-extrabold tracking-wide px-2 py-0.5 rounded-md border border-[#BCE8A2]">
-                    ACTIVE SELECTION
+                    {t("orgs.pipeline.activeSelection")}
                   </div>
                 )}
 
@@ -223,9 +246,11 @@ export const DashboardPage: React.FC = () => {
                   </div>
 
                   {/* Title & Description */}
-                  <h3 className="text-sm font-bold text-slate-900 leading-snug">{type.name}</h3>
+                  <h3 className="text-sm font-bold text-slate-900 leading-snug">
+                    {t(`orgs.pipeline.types.${type.key}.name`)}
+                  </h3>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed min-h-[34px]">
-                    {type.description}
+                    {t(`orgs.pipeline.types.${type.key}.description`)}
                   </p>
                 </div>
 
@@ -236,7 +261,7 @@ export const DashboardPage: React.FC = () => {
                       key={idx}
                       className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${b.colorClass}`}
                     >
-                      {b.label} {b.count}
+                      {t(`orgs.pipeline.badge.${b.code}`, { value: f.number(b.count) })}
                     </span>
                   ))}
                 </div>
@@ -253,13 +278,11 @@ export const DashboardPage: React.FC = () => {
         {/* Card Header with Title and Search/Export Controls */}
         <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-base font-bold text-slate-900">Active Onboarding Pipeline</h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Review documentation, check status updates, and approve pending partners.
-            </p>
+            <h2 className="text-base font-bold text-slate-900">{t("orgs.pipeline.table.title")}</h2>
+            <p className="text-xs text-slate-500 mt-0.5">{t("orgs.pipeline.table.subtitle")}</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {/* Search partners */}
             <div className="relative w-48 sm:w-60">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -267,7 +290,7 @@ export const DashboardPage: React.FC = () => {
                 type="text"
                 value={pipelineSearch}
                 onChange={(e) => setPipelineSearch(e.target.value)}
-                placeholder="Search partners..."
+                placeholder={t("orgs.pipeline.table.searchPlaceholder")}
                 className="w-full pl-9 pr-3.5 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:border-[#65D000] focus:ring-1 focus:ring-[#65D000]/20 transition-all outline-none placeholder:text-slate-400"
               />
             </div>
@@ -279,7 +302,7 @@ export const DashboardPage: React.FC = () => {
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-2xs transition-colors cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-slate-500" />
-              <span>Export CSV</span>
+              <span>{t("common.exportCsv")}</span>
             </button>
           </div>
         </div>
@@ -289,18 +312,18 @@ export const DashboardPage: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-[#FAFBFB] text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-100 font-bold">
               <tr>
-                <th className="px-6 py-3.5">PARTNER BUSINESS</th>
-                <th className="px-6 py-3.5">ONBOARDING STEPS &amp; KYC</th>
-                <th className="px-6 py-3.5">OPERATIONAL HOURS</th>
-                <th className="px-6 py-3.5">ACTIVATION STATUS</th>
-                <th className="px-6 py-3.5 text-right">ACTIONS</th>
+                <th className="px-6 py-3.5">{t("orgs.pipeline.table.business")}</th>
+                <th className="px-6 py-3.5">{t("orgs.pipeline.table.steps")}</th>
+                <th className="px-6 py-3.5">{t("orgs.pipeline.table.hours")}</th>
+                <th className="px-6 py-3.5">{t("orgs.pipeline.table.activation")}</th>
+                <th className="px-6 py-3.5 text-right">{t("orgs.pipeline.table.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {filteredPipeline.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
-                    No partners matching search criteria.
+                    {t("orgs.pipeline.table.empty")}
                   </td>
                 </tr>
               ) : (
@@ -312,7 +335,10 @@ export const DashboardPage: React.FC = () => {
                         {row.businessName}
                       </div>
                       <div className="text-[11px] text-slate-400 mt-0.5">
-                        {row.businessType} • ID: {row.partnerId}
+                        {t("orgs.pipeline.row.typeAndId", {
+                          type: businessTypeLabel(row.businessTypeCode),
+                          id: row.partnerId,
+                        })}
                       </div>
                     </td>
 
@@ -326,7 +352,7 @@ export const DashboardPage: React.FC = () => {
                                 key={idx}
                                 className="bg-[#EBF9E5] text-[#3E8800] text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[#BCE8A2]"
                               >
-                                {step.label}
+                                {stepLabel(step)}
                               </span>
                             );
                           }
@@ -336,7 +362,7 @@ export const DashboardPage: React.FC = () => {
                                 key={idx}
                                 className="bg-slate-800 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full"
                               >
-                                {step.label}
+                                {stepLabel(step)}
                               </span>
                             );
                           }
@@ -346,7 +372,7 @@ export const DashboardPage: React.FC = () => {
                                 key={idx}
                                 className="bg-[#FFF8E6] text-[#B7791F] text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[#FEEBC8]"
                               >
-                                {step.label}
+                                {stepLabel(step)}
                               </span>
                             );
                           }
@@ -355,7 +381,7 @@ export const DashboardPage: React.FC = () => {
                               key={idx}
                               className="bg-[#EBF9E5] text-[#3E8800] text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[#BCE8A2]"
                             >
-                              {step.label}
+                              {stepLabel(step)}
                             </span>
                           );
                         })}
@@ -363,7 +389,11 @@ export const DashboardPage: React.FC = () => {
                     </td>
 
                     {/* Operational Hours */}
-                    <td className="px-6 py-4 text-slate-600 font-medium">{row.operationalHours}</td>
+                    <td className="px-6 py-4 text-slate-600 font-medium">
+                      {row.hoursCode
+                        ? t(`orgs.pipeline.hours.${row.hoursCode}`)
+                        : row.operationalHours}
+                    </td>
 
                     {/* Activation Status */}
                     <td className="px-6 py-4">
@@ -378,7 +408,7 @@ export const DashboardPage: React.FC = () => {
                             row.status === "Online Ready" ? "text-slate-800" : "text-slate-500"
                           }
                         >
-                          {row.status}
+                          {statusLabel(t, row.status)}
                         </span>
                       </div>
                     </td>
@@ -388,18 +418,22 @@ export const DashboardPage: React.FC = () => {
                       {row.actionType === "Configure" ? (
                         <button
                           type="button"
-                          onClick={() => alert(`Configuring ${row.businessName}...`)}
+                          onClick={() =>
+                            alert(t("orgs.pipeline.row.configuring", { name: row.businessName }))
+                          }
                           className="px-3.5 py-1 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-2xs transition-colors cursor-pointer"
                         >
-                          Configure
+                          {t("orgs.pipeline.row.configure")}
                         </button>
                       ) : (
                         <button
                           type="button"
-                          onClick={() => alert(`Launching onboarding for ${row.businessName}...`)}
+                          onClick={() =>
+                            alert(t("orgs.pipeline.row.launching", { name: row.businessName }))
+                          }
                           className="px-3.5 py-1 text-xs font-bold text-[#3E8800] bg-[#EBF9E5] hover:bg-[#DEF5CE] border border-[#BCE8A2] rounded-lg shadow-2xs transition-colors cursor-pointer"
                         >
-                          Onboard
+                          {t("orgs.pipeline.row.onboard")}
                         </button>
                       )}
                     </td>

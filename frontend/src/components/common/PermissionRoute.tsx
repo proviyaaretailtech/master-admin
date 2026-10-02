@@ -1,5 +1,6 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { usePermissions } from "../../hooks/use-permissions";
 import { AccessDenied } from "./AccessDenied";
 
@@ -12,7 +13,10 @@ interface PermissionRouteProps {
   featureId?: string;
   actionKey?: string;
   anyOf?: PermissionRequirement[];
+  /** Already-translated page name. Prefer featureNameKey. */
   featureName?: string;
+  /** Catalogue key of the page name, e.g. "nav.feature.usersManagement". */
+  featureNameKey?: string;
   children?: React.ReactNode;
 }
 
@@ -21,8 +25,10 @@ export const PermissionRoute: React.FC<PermissionRouteProps> = ({
   actionKey,
   anyOf,
   featureName,
+  featureNameKey,
   children,
 }) => {
+  const { t } = useTranslation();
   const { can } = usePermissions();
 
   const isAllowed =
@@ -33,7 +39,7 @@ export const PermissionRoute: React.FC<PermissionRouteProps> = ({
         : false;
 
   if (!isAllowed) {
-    return <AccessDenied featureName={featureName} />;
+    return <AccessDenied featureName={featureNameKey ? t(featureNameKey) : featureName} />;
   }
 
   return children ? <>{children}</> : <Outlet />;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Trans, useTranslation } from "react-i18next";
 import {
   Plus,
   Loader2,
@@ -13,9 +14,19 @@ import {
 import { packApi, CommercialPackItem } from "../api/pack.api";
 import { planApi, CommercialPlanItem } from "../api/plan.api";
 import { usePermissions } from "../hooks/use-permissions";
+import { useFormat } from "../i18n/useFormat";
+import { statusLabel, cadenceLabel } from "../i18n/labels";
+import { localizeError } from "../i18n/errors";
+
+// An error kept as the ERROR (not a string) so it re-translates if the language changes.
+type PageError = { err: unknown; fallbackKey: string };
+// A success toast kept as a catalogue key + values for the same reason.
+type PageToast = { key: "packs.toast.published" | "packs.toast.retired"; name: string };
 
 export const CommercialPacksPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const f = useFormat();
   const { can } = usePermissions();
 
   const canCreate = can("feat_commercial_packs", "create_pack");
@@ -28,8 +39,8 @@ export const CommercialPacksPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedCompatibility, setSelectedCompatibility] = useState<string>("All");
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<PageToast | null>(null);
+  const [error, setError] = useState<PageError | null>(null);
   const [packToRetire, setPackToRetire] = useState<CommercialPackItem | null>(null);
   const [isRetiring, setIsRetiring] = useState(false);
 
@@ -61,7 +72,7 @@ export const CommercialPacksPage: React.FC = () => {
 
   const fetchPacksAndPlans = async () => {
     setIsLoading(true);
-    setErrorMessage(null);
+    setError(null);
     try {
       const [packsRes, plansRes] = await Promise.all([
         packApi.getAll({
@@ -71,9 +82,9 @@ export const CommercialPacksPage: React.FC = () => {
       ]);
       setPacks(packsRes.packs || []);
       setPlans(plansRes.plans || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setPacks([]);
-      setErrorMessage(err?.message || "Failed to load commercial feature packs");
+      setError({ err, fallbackKey: "packs.toast.loadFailed" });
     } finally {
       setIsLoading(false);
     }
@@ -83,18 +94,18 @@ export const CommercialPacksPage: React.FC = () => {
     fetchPacksAndPlans();
   }, [selectedCompatibility]);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
+  const showToast = (next: PageToast) => {
+    setToast(next);
+    setTimeout(() => setToast(null), 4000);
   };
 
   const handlePublish = async (id: string, name: string) => {
     try {
       await packApi.publish(id);
-      showToast(`Feature pack '${name}' published successfully.`);
+      showToast({ key: "packs.toast.published", name });
       fetchPacksAndPlans();
-    } catch (err: any) {
-      setErrorMessage(err?.message || "Failed to publish feature pack");
+    } catch (err: unknown) {
+      setError({ err, fallbackKey: "packs.toast.publishFailed" });
     }
   };
 
@@ -107,41 +118,42 @@ export const CommercialPacksPage: React.FC = () => {
     setIsRetiring(true);
     try {
       await packApi.retire(packToRetire.id);
-      showToast(`Feature pack '${packToRetire.name}' retired.`);
+      showToast({ key: "packs.toast.retired", name: packToRetire.name });
       setPackToRetire(null);
       fetchPacksAndPlans();
-    } catch (err: any) {
-      setErrorMessage(err?.message || "Failed to retire feature pack");
+    } catch (err: unknown) {
+      setError({ err, fallbackKey: "packs.toast.retireFailed" });
     } finally {
       setIsRetiring(false);
     }
   };
 
-  // Render status badge
+  // Render status badge (the raw status stays the code; only the shown text is translated)
   const renderStatusBadge = (status: CommercialPackItem["status"]) => {
+    const label = statusLabel(t, status);
     switch (status) {
       case "Published":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-[#EAF7DB] text-[#2B7000] border border-[#CDE7B2]">
-            Published
+            {label}
           </span>
         );
       case "Draft":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-            Draft
+            {label}
           </span>
         );
       case "Retired":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]">
-            Retired
+            {label}
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-600">
-            {status}
+            {label}
           </span>
         );
     }
@@ -150,48 +162,52 @@ export const CommercialPacksPage: React.FC = () => {
   // Format compatible plans display
   const formatCompatiblePlans = (compatiblePlans: string[]) => {
     if (!compatiblePlans || compatiblePlans.length === 0) {
-      return "All Commercial Plans";
+      return t("packs.list.allCommercialPlans");
     }
     return compatiblePlans.join(", ");
   };
 
-  // Format price
-  const formatPrice = (price: number, currency: string, cadence: string) => {
-    const symbol = currency === "INR" ? "₹" : currency + " ";
-    const formattedNum = Number(price).toLocaleString("en-IN");
-    return `${symbol}${formattedNum} / ${cadence.toLowerCase()}`;
-  };
+  // Format price: "₹1,499 / monthly"
+  const formatPrice = (pack: CommercialPackItem) =>
+    t("packs.list.priceWithCadence", {
+      amount: f.moneyFrom(pack as unknown as Record<string, unknown>, "price", {
+        currency: pack.currency,
+      }),
+      cadence: cadenceLabel(t, pack.cadence).toLowerCase(),
+    });
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 bg-emerald-800 text-white px-4 py-3 rounded-lg shadow-lg text-sm animate-fade-in">
+      {toast && (
+        <div className="fixed top-5 right-5 z-50 max-w-[min(28rem,calc(100vw-2rem))] flex items-center gap-2 bg-emerald-800 text-white px-4 py-3 rounded-lg shadow-lg text-sm animate-fade-in">
           <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-          <span>{toastMessage}</span>
+          <span>{t(toast.key, { name: toast.name })}</span>
         </div>
       )}
 
       {/* Error Banner */}
-      {errorMessage && (
+      {error && (
         <div className="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg text-sm">
           <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-          <span>{errorMessage}</span>
+          <span>{localizeError(error.err, error.fallbackKey)}</span>
         </div>
       )}
 
       {/* Header Area */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80">
         <div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-1">
-            <span>Master</span>
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500 mb-1">
+            <span>{t("packs.shared.breadcrumbMaster")}</span>
             <span>/</span>
-            <span>Commercials</span>
+            <span>{t("packs.shared.breadcrumbCommercials")}</span>
             <span>/</span>
-            <span className="text-slate-800 font-semibold">Packs</span>
+            <span className="text-slate-800 font-semibold">
+              {t("packs.shared.breadcrumbPacks")}
+            </span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Commercial Feature Packs
+            {t("packs.list.title")}
           </h1>
         </div>
 
@@ -201,29 +217,29 @@ export const CommercialPacksPage: React.FC = () => {
             onClick={() => navigate("/commercials/packs/new")}
             className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#15803D] hover:bg-[#166534] rounded-lg shadow-sm transition-colors cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            <span>Create Feature Pack</span>
+            <Plus className="w-4 h-4 shrink-0" />
+            <span>{t("packs.shared.createPack")}</span>
           </button>
         )}
       </div>
 
       {/* Filter Toolbar matching screenshot */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div ref={filterDropdownRef} className="relative">
           <button
             type="button"
             onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
             className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
           >
-            <Filter className="w-3.5 h-3.5 text-slate-500" />
-            <span>Filters</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            <Filter className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+            <span>{t("packs.list.filters")}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           </button>
 
           {isFilterDropdownOpen && (
-            <div className="absolute left-0 mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-lg z-20 p-2 text-xs">
+            <div className="absolute left-0 mt-1 w-max min-w-[16rem] max-w-[20rem] bg-white border border-slate-200 rounded-xl shadow-lg z-20 p-2 text-xs">
               <div className="font-semibold text-slate-700 px-2 py-1 mb-1 border-b border-slate-100 flex items-center justify-between">
-                <span>Filter by Plan Compatibility</span>
+                <span>{t("packs.list.filterByCompatibility")}</span>
               </div>
               <button
                 type="button"
@@ -237,11 +253,11 @@ export const CommercialPacksPage: React.FC = () => {
                     : "text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                All Compatible Plans
+                {t("packs.list.allCompatiblePlans")}
               </button>
               {publishedPlans.length === 0 ? (
                 <div className="px-2 py-2 text-[11px] text-slate-400">
-                  No published plans available
+                  {t("packs.list.noPublishedPlans")}
                 </div>
               ) : (
                 publishedPlans.map((pl) => (
@@ -267,14 +283,14 @@ export const CommercialPacksPage: React.FC = () => {
         </div>
 
         {selectedCompatibility !== "All" && (
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-300 rounded-full text-xs font-medium text-slate-800">
-            <span className="text-slate-500">Compatibility:</span>
+          <div className="inline-flex flex-wrap items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-300 rounded-full text-xs font-medium text-slate-800">
+            <span className="text-slate-500">{t("packs.list.compatibilityLabel")}</span>
             <span className="font-semibold">{selectedCompatibility}</span>
             <button
               type="button"
               onClick={() => setSelectedCompatibility("All")}
               className="ml-1 text-slate-400 hover:text-slate-700 cursor-pointer font-bold"
-              title="Clear filter"
+              title={t("packs.list.clearFilter")}
             >
               ×
             </button>
@@ -286,7 +302,7 @@ export const CommercialPacksPage: React.FC = () => {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-24 bg-white rounded-xl border border-slate-200">
           <Loader2 className="w-8 h-8 text-[#15803D] animate-spin mb-3" />
-          <p className="text-sm font-medium text-slate-600">Loading commercial feature packs...</p>
+          <p className="text-sm font-medium text-slate-600">{t("packs.list.loading")}</p>
         </div>
       ) : packs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-xl border border-dashed border-slate-300 text-center">
@@ -294,21 +310,17 @@ export const CommercialPacksPage: React.FC = () => {
             <Package className="w-6 h-6" />
           </div>
           <h3 className="text-base font-semibold text-slate-900 mb-1">
-            No Commercial Feature Packs Found
+            {t("packs.list.emptyTitle")}
           </h3>
-          <p className="text-xs text-slate-500 max-w-md mb-5">
-            Zero static data is loaded. Feature packs allow you to bundle advanced platform
-            capabilities (such as Custom SQL reporting or Multi-location sync) as monetizable
-            add-ons.
-          </p>
+          <p className="text-xs text-slate-500 max-w-md mb-5">{t("packs.list.emptyBody")}</p>
           {canCreate && (
             <button
               type="button"
               onClick={() => navigate("/commercials/packs/new")}
               className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-[#15803D] hover:bg-[#166534] rounded-lg shadow-sm transition-colors cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>Create Feature Pack</span>
+              <Plus className="w-4 h-4 shrink-0" />
+              <span>{t("packs.shared.createPack")}</span>
             </button>
           )}
         </div>
@@ -318,13 +330,13 @@ export const CommercialPacksPage: React.FC = () => {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="py-3 px-5">Pack Name</th>
-                  <th className="py-3 px-4">Compatible Plans</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Included Features</th>
-                  <th className="py-3 px-4">Price (INR)</th>
-                  <th className="py-3 px-4 whitespace-nowrap">Assigned Orgs</th>
-                  <th className="py-3 px-5 text-right">Actions</th>
+                  <th className="py-3 px-5">{t("packs.list.columns.packName")}</th>
+                  <th className="py-3 px-4">{t("packs.list.columns.compatiblePlans")}</th>
+                  <th className="py-3 px-4">{t("common.status")}</th>
+                  <th className="py-3 px-4">{t("packs.list.columns.includedFeatures")}</th>
+                  <th className="py-3 px-4">{t("packs.list.columns.priceInr")}</th>
+                  <th className="py-3 px-4">{t("packs.list.columns.assignedOrgs")}</th>
+                  <th className="py-3 px-5 text-right">{t("common.actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -334,7 +346,7 @@ export const CommercialPacksPage: React.FC = () => {
                     <td className="py-4 px-5">
                       <div className="font-bold text-slate-900 text-sm">{pack.name}</div>
                       <div className="text-slate-500 text-[11px] mt-0.5">
-                        Pack ID: {pack.pack_code}
+                        {t("packs.list.packId", { code: pack.pack_code })}
                       </div>
                     </td>
 
@@ -346,14 +358,12 @@ export const CommercialPacksPage: React.FC = () => {
                     </td>
 
                     {/* STATUS */}
-                    <td className="py-4 px-4 whitespace-nowrap">
-                      {renderStatusBadge(pack.status)}
-                    </td>
+                    <td className="py-4 px-4">{renderStatusBadge(pack.status)}</td>
 
                     {/* INCLUDED FEATURES */}
                     <td className="py-4 px-4">
                       <div className="text-slate-900 font-semibold">
-                        {pack.included_feature_title || "Standard Capability"}
+                        {pack.included_feature_title || t("packs.list.standardCapability")}
                       </div>
                       {pack.included_feature_subtitle && (
                         <div className="text-slate-500 text-[11px] mt-0.5">
@@ -363,26 +373,24 @@ export const CommercialPacksPage: React.FC = () => {
                     </td>
 
                     {/* PRICE */}
-                    <td className="py-4 px-4 whitespace-nowrap">
-                      <div className="font-bold text-slate-900">
-                        {formatPrice(pack.price, pack.currency, pack.cadence)}
-                      </div>
+                    <td className="py-4 px-4">
+                      <div className="font-bold text-slate-900">{formatPrice(pack)}</div>
                     </td>
 
                     {/* ASSIGNED ORGS */}
-                    <td className="py-4 px-4 whitespace-nowrap">
+                    <td className="py-4 px-4">
                       <div
                         className={`font-semibold ${
                           pack.assigned_count > 0 ? "text-[#15803D] font-bold" : "text-slate-600"
                         }`}
                       >
-                        {pack.assigned_count} Orgs
+                        {t("packs.list.orgsCount", { count: pack.assigned_count })}
                       </div>
                     </td>
 
                     {/* ACTIONS */}
-                    <td className="py-4 px-5 whitespace-nowrap text-right">
-                      <div className="inline-flex items-center gap-3">
+                    <td className="py-4 px-5 text-right">
+                      <div className="inline-flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
                         {pack.status === "Published" ? (
                           <>
                             {canEdit && (
@@ -390,7 +398,7 @@ export const CommercialPacksPage: React.FC = () => {
                                 to={`/commercials/packs/${pack.id}/edit`}
                                 className="font-medium text-slate-700 hover:text-slate-900 hover:underline cursor-pointer"
                               >
-                                Edit Pack
+                                {t("packs.list.editPack")}
                               </Link>
                             )}
                             {canRetire && (
@@ -399,7 +407,7 @@ export const CommercialPacksPage: React.FC = () => {
                                 onClick={() => handleOpenRetireModal(pack)}
                                 className="text-slate-500 hover:text-rose-600 font-medium hover:underline cursor-pointer"
                               >
-                                Retire
+                                {t("common.retire")}
                               </button>
                             )}
                           </>
@@ -410,7 +418,7 @@ export const CommercialPacksPage: React.FC = () => {
                                 to={`/commercials/packs/${pack.id}/edit`}
                                 className="font-bold text-[#15803D] hover:underline cursor-pointer"
                               >
-                                Edit Draft
+                                {t("packs.list.editDraft")}
                               </Link>
                             )}
                             {canPublish && (
@@ -419,7 +427,7 @@ export const CommercialPacksPage: React.FC = () => {
                                 onClick={() => handlePublish(pack.id, pack.name)}
                                 className="text-slate-700 hover:text-slate-900 font-medium hover:underline cursor-pointer"
                               >
-                                Publish
+                                {t("common.publish")}
                               </button>
                             )}
                           </>
@@ -430,7 +438,7 @@ export const CommercialPacksPage: React.FC = () => {
                                 to={`/commercials/packs/${pack.id}/edit`}
                                 className="font-medium text-slate-600 hover:text-slate-900 hover:underline cursor-pointer"
                               >
-                                Edit
+                                {t("common.edit")}
                               </Link>
                             )}
                           </>
@@ -454,53 +462,54 @@ export const CommercialPacksPage: React.FC = () => {
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Retire Feature Pack</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Update lifecycle status to archive pack from new adoptions.
-                </p>
+                <h3 className="text-base font-bold text-slate-900">
+                  {t("packs.dialog.retireTitle")}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">{t("packs.dialog.retireSubtitle")}</p>
               </div>
             </div>
 
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Pack Name:</span>
-                <span className="font-bold text-slate-900">{packToRetire.name}</span>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-500 font-medium">{t("packs.dialog.packName")}</span>
+                <span className="font-bold text-slate-900 text-right">{packToRetire.name}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Pack Code:</span>
-                <span className="font-mono text-slate-800">{packToRetire.pack_code}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Current Price:</span>
-                <span className="font-semibold text-slate-800">
-                  {formatPrice(packToRetire.price, packToRetire.currency, packToRetire.cadence)}
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-500 font-medium">{t("packs.dialog.packCode")}</span>
+                <span className="font-mono text-slate-800 text-right">
+                  {packToRetire.pack_code}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-medium">Assigned Organizations:</span>
-                <span className="font-semibold text-slate-800">
-                  {packToRetire.assigned_count} Orgs
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-500 font-medium">{t("packs.dialog.currentPrice")}</span>
+                <span className="font-semibold text-slate-800 text-right">
+                  {formatPrice(packToRetire)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-500 font-medium">{t("packs.dialog.assignedOrgs")}</span>
+                <span className="font-semibold text-slate-800 text-right">
+                  {t("packs.list.orgsCount", { count: packToRetire.assigned_count })}
                 </span>
               </div>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Are you sure you want to retire{" "}
-              <strong className="text-slate-900 font-semibold">
-                &quot;{packToRetire.name}&quot;
-              </strong>
-              ? Existing organizations will retain their pack access, but new subscriptions will be
-              restricted from adopting it.
+              <Trans
+                i18nKey="packs.dialog.retireConfirm"
+                values={{ name: packToRetire.name }}
+                components={{ strong: <strong className="text-slate-900 font-semibold" /> }}
+              />
             </p>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <div className="flex flex-wrap items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setPackToRetire(null)}
                 disabled={isRetiring}
                 className="px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -508,8 +517,10 @@ export const CommercialPacksPage: React.FC = () => {
                 onClick={handleConfirmRetire}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
               >
-                {isRetiring && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                <span>{isRetiring ? "Retiring Pack..." : "Confirm & Retire Pack"}</span>
+                {isRetiring && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
+                <span>
+                  {isRetiring ? t("packs.dialog.retiring") : t("packs.dialog.confirmRetire")}
+                </span>
               </button>
             </div>
           </div>

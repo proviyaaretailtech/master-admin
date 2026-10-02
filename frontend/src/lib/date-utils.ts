@@ -8,7 +8,13 @@
  * - Beyond a week: e.g. "1 week ago", "2 weeks ago"
  * - Beyond a month: e.g. "1 month ago", "3 months ago"
  * - Beyond a year: e.g. "1 year ago", "2 years ago"
+ *
+ * Labels come from the catalogue (common.relative.*) and dates are formatted for the ACTIVE
+ * language (Latin digits in Hindi). Calendar-day maths uses the device's local time zone so a
+ * sync that happened "today" on the user's clock reads as "Today".
  */
+import i18n from "i18next";
+import { intlLocaleFor } from "../i18n/format";
 
 export interface LastSyncFormat {
   /** Short primary headline label: "Today", "Yesterday", "Monday", "1 week ago", etc. */
@@ -90,10 +96,11 @@ export function formatLastSync(
   dateInput?: string | Date | number | null,
   referenceNow: Date = new Date()
 ): LastSyncFormat {
+  const t = i18n.t.bind(i18n);
   const date = parseSyncDate(dateInput);
 
   if (!date) {
-    const raw = dateInput ? String(dateInput) : "Never";
+    const raw = dateInput ? String(dateInput) : t("common.relative.never");
     return {
       main: raw,
       sub: "",
@@ -102,7 +109,9 @@ export function formatLastSync(
     };
   }
 
-  const full = date.toLocaleString("en-US", {
+  const locale = intlLocaleFor("date");
+
+  const full = new Intl.DateTimeFormat(locale, {
     weekday: "long",
     year: "numeric",
     month: "short",
@@ -110,19 +119,19 @@ export function formatLastSync(
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-  });
+  }).format(date);
 
-  const timeStr = date.toLocaleTimeString("en-US", {
+  const timeStr = new Intl.DateTimeFormat(locale, {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-  });
+  }).format(date);
 
-  const dateShort = date.toLocaleDateString("en-US", {
+  const dateShort = new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
-  });
+  }).format(date);
 
   // Calculate day difference by calendar day
   const startOfNow = new Date(
@@ -137,9 +146,9 @@ export function formatLastSync(
   // Future timestamp (clock skew tolerance)
   if (diffDays < 0) {
     return {
-      main: "Just now",
+      main: t("common.relative.justNow"),
       sub: timeStr,
-      combined: `Today at ${timeStr}`,
+      combined: t("common.relative.todayAt", { time: timeStr }),
       full,
     };
   }
@@ -147,9 +156,9 @@ export function formatLastSync(
   // 1. Today
   if (diffDays === 0) {
     return {
-      main: "Today",
+      main: t("common.relative.today"),
       sub: timeStr,
-      combined: `Today at ${timeStr}`,
+      combined: t("common.relative.todayAt", { time: timeStr }),
       full,
     };
   }
@@ -157,57 +166,39 @@ export function formatLastSync(
   // 2. Yesterday
   if (diffDays === 1) {
     return {
-      main: "Yesterday",
+      main: t("common.relative.yesterday"),
       sub: timeStr,
-      combined: `Yesterday at ${timeStr}`,
+      combined: t("common.relative.yesterdayAt", { time: timeStr }),
       full,
     };
   }
 
   // 3. Within current week (2 to 6 days ago)
   if (diffDays < 7) {
-    const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
+    const weekday = new Intl.DateTimeFormat(locale, { weekday: "long" }).format(date);
     return {
       main: weekday,
       sub: timeStr,
-      combined: `${weekday} at ${timeStr}`,
+      combined: t("common.relative.weekdayAt", { weekday, time: timeStr }),
       full,
     };
   }
 
   // 4. Beyond week (7 to 29 days)
   if (diffDays < 30) {
-    const weeks = Math.floor(diffDays / 7);
-    const label = weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
-    return {
-      main: label,
-      sub: dateShort,
-      combined: label,
-      full,
-    };
+    const label = t("common.relative.weeksAgo", { count: Math.floor(diffDays / 7) });
+    return { main: label, sub: dateShort, combined: label, full };
   }
 
   // 5. Beyond month (30 to 364 days)
   if (diffDays < 365) {
-    const months = Math.floor(diffDays / 30);
-    const label = months === 1 ? "1 month ago" : `${months} months ago`;
-    return {
-      main: label,
-      sub: dateShort,
-      combined: label,
-      full,
-    };
+    const label = t("common.relative.monthsAgo", { count: Math.floor(diffDays / 30) });
+    return { main: label, sub: dateShort, combined: label, full };
   }
 
   // 6. Beyond year (365+ days)
-  const years = Math.floor(diffDays / 365);
-  const label = years === 1 ? "1 year ago" : `${years} years ago`;
-  return {
-    main: label,
-    sub: dateShort,
-    combined: label,
-    full,
-  };
+  const label = t("common.relative.yearsAgo", { count: Math.floor(diffDays / 365) });
+  return { main: label, sub: dateShort, combined: label, full };
 }
 
 /**

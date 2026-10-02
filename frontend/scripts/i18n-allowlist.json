@@ -1,0 +1,16 @@
+{
+  "_notes": "Deliberate exceptions to the hard-coded string scan. Add a reason for every entry.",
+  "files": [],
+  "lines": [],
+  "texts": [
+    "Proviyaa",
+    "OL",
+    "YYYY-MM-DD HH:mm:ss",
+    "LOC - XX 001"
+  ],
+  "reasons": {
+    "Proviyaa / OL": "brand names and logo initials stay Latin",
+    "YYYY-MM-DD HH:mm:ss": "machine date format the backend parses, not prose",
+    "LOC - XX 001": "location code pattern, not prose"
+  }
+}

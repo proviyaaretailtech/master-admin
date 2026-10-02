@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../hooks/use-auth";
 import { usePermissions } from "../hooks/use-permissions";
 import {
@@ -25,9 +26,15 @@ import {
   LayoutDashboard,
   Menu,
   X,
+  Settings as SettingsIcon,
+  Globe,
 } from "lucide-react";
+import { getLocaleMeta } from "../i18n/registry";
+import { useLanguage } from "../i18n/useLanguage";
 
 export const DashboardLayout: React.FC = () => {
+  const { t } = useTranslation();
+  const { active: activeLanguage } = useLanguage();
   const { user, logout } = useAuth();
   const { can, roleName } = usePermissions();
   const location = useLocation();
@@ -104,38 +111,38 @@ export const DashboardLayout: React.FC = () => {
 
   // Navigation Items: Organization (filtered by permissions)
   const organizationSubItems = [
-    { name: "Organizations", path: "/dashboard", visible: true },
+    { name: "organizations", path: "/dashboard", visible: true },
     {
-      name: "Organization 360",
+      name: "organization_360",
       path: "/organizations/360",
       visible: can("feat_org_360", "view_directory"),
     },
-    { name: "Brands", path: "/brands", visible: true },
+    { name: "brands", path: "/brands", visible: true },
     {
-      name: "Locations",
+      name: "locations",
       path: "/locations",
       visible: can("feat_partner_locations", "view_locations"),
     },
-    { name: "Departments", path: "/departments", visible: true },
-    { name: "Employees", path: "/employees", visible: true },
-    { name: "Invitations", path: "/invitations", visible: true },
+    { name: "departments", path: "/departments", visible: true },
+    { name: "employees", path: "/employees", visible: true },
+    { name: "invitations", path: "/invitations", visible: true },
   ].filter((item) => item.visible);
 
   // Navigation Items: Access Control (filtered by permissions)
   const accessControlSubItems = [
-    { name: "Users", path: "/users", visible: can("feat_users_mgmt", "view_users") },
+    { name: "users", path: "/users", visible: can("feat_users_mgmt", "view_users") },
     {
-      name: "Roles & Permissions",
+      name: "roles_permissions",
       path: "/access-control/roles",
       visible: can("feat_roles_templates", "view_roles"),
     },
     {
-      name: "Security Policies",
+      name: "security_policies",
       path: "/access-control/policies",
       visible: can("feat_roles_templates", "view_roles"),
     },
     {
-      name: "Audit Logs",
+      name: "audit_logs",
       path: "/access-control/audit-logs",
       visible: can("feat_audit_compliance", "view_audit_logs"),
     },
@@ -144,37 +151,37 @@ export const DashboardLayout: React.FC = () => {
   // Navigation Items: Commercials (matches screenshots 1 & 2)
   const commercialsSubItems = [
     {
-      name: "Plans",
+      name: "plans",
       path: "/commercials/plans",
       visible: can("feat_commercial_plans", "view_plans"),
     },
     {
-      name: "Packs",
+      name: "packs",
       path: "/commercials/packs",
       visible: can("feat_commercial_packs", "view_packs"),
     },
     {
-      name: "Add-ons",
+      name: "add_ons",
       path: "/commercials/add-ons",
       visible: can("feat_commercial_addons", "view_addons"),
     },
-    { name: "Subscriptions", path: "/commercials/subscriptions", visible: true },
-    { name: "Entitlements", path: "/commercials/entitlements", visible: true },
-    { name: "Usage", path: "/commercials/usage", visible: true },
-    { name: "Billing", path: "/commercials/billing", visible: true },
+    { name: "subscriptions", path: "/commercials/subscriptions", visible: true },
+    { name: "entitlements", path: "/commercials/entitlements", visible: true },
+    { name: "usage", path: "/commercials/usage", visible: true },
+    { name: "billing", path: "/commercials/billing", visible: true },
   ].filter((item) => item.visible);
 
   // Other System Domains
   const systemDomains = [
-    { name: "Platform Core", icon: Layers, path: "/platform-core" },
-    { name: "Commerce Engine", icon: ShoppingCart, path: "/commerce-engine" },
-    { name: "Inventory Supply", icon: Package, path: "/inventory-supply" },
-    { name: "Fulfilment", icon: Truck, path: "/fulfilment" },
-    { name: "Intelligence", icon: BarChart3, path: "/intelligence" },
-    { name: "Operations", icon: Sliders, path: "/operations" },
-    { name: "Support", icon: Headphones, path: "/support" },
-    { name: "Developer", icon: Code2, path: "/developer" },
-    { name: "Audit", icon: FileCheck, path: "/audit" },
+    { name: "platform_core", icon: Layers, path: "/platform-core" },
+    { name: "commerce_engine", icon: ShoppingCart, path: "/commerce-engine" },
+    { name: "inventory_supply", icon: Package, path: "/inventory-supply" },
+    { name: "fulfilment", icon: Truck, path: "/fulfilment" },
+    { name: "intelligence", icon: BarChart3, path: "/intelligence" },
+    { name: "operations", icon: Sliders, path: "/operations" },
+    { name: "support", icon: Headphones, path: "/support" },
+    { name: "developer", icon: Code2, path: "/developer" },
+    { name: "audit", icon: FileCheck, path: "/audit" },
   ];
 
   return (
@@ -204,7 +211,7 @@ export const DashboardLayout: React.FC = () => {
             <div className="leading-tight">
               <div className="font-extrabold text-slate-900 text-base tracking-tight">Proviyaa</div>
               <div className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                MASTER ADMIN PANEL
+                {t("nav.brandSub")}
               </div>
             </div>
           </div>
@@ -212,6 +219,7 @@ export const DashboardLayout: React.FC = () => {
           {/* Close button for mobile */}
           <button
             onClick={() => setIsMobileSidebarOpen(false)}
+            aria-label={t("nav.closeMenu")}
             className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
           >
             <X className="w-5 h-5" />
@@ -223,7 +231,7 @@ export const DashboardLayout: React.FC = () => {
           {/* OVERVIEW SECTION */}
           <div>
             <div className="px-2.5 pb-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">
-              OVERVIEW
+              {t("nav.overview")}
             </div>
             <Link
               to="/dashboard"
@@ -234,14 +242,14 @@ export const DashboardLayout: React.FC = () => {
               }`}
             >
               <LayoutDashboard className="w-4 h-4 text-slate-500" />
-              <span>Dashboard</span>
+              <span>{t("nav.items.dashboard")}</span>
             </Link>
           </div>
 
           {/* SYSTEM DOMAINS SECTION */}
           <div className="space-y-1">
             <div className="px-2.5 pb-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">
-              SYSTEM DOMAINS
+              {t("nav.systemDomains")}
             </div>
 
             {/* 1. Organization Section (Collapsible Dropdown Menu) */}
@@ -272,7 +280,7 @@ export const DashboardLayout: React.FC = () => {
                         : "text-slate-500"
                     }`}
                   />
-                  <span>Organization</span>
+                  <span>{t("nav.organization")}</span>
                 </div>
                 <ChevronDown
                   className={`w-3.5 h-3.5 transition-transform duration-200 ${
@@ -299,7 +307,7 @@ export const DashboardLayout: React.FC = () => {
                             : "text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium"
                         }`}
                       >
-                        {sub.name}
+                        {t(`nav.items.${sub.name}`)}
                       </Link>
                     );
                   })}
@@ -323,7 +331,7 @@ export const DashboardLayout: React.FC = () => {
                     <ShieldCheck
                       className={`w-4 h-4 ${isAccessControlActive ? "text-[#4FA800]" : "text-slate-500"}`}
                     />
-                    <span>Access Control</span>
+                    <span>{t("nav.accessControl")}</span>
                   </div>
                   <ChevronDown
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${
@@ -360,7 +368,7 @@ export const DashboardLayout: React.FC = () => {
                               : "text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium"
                           }`}
                         >
-                          {sub.name}
+                          {t(`nav.items.${sub.name}`)}
                         </Link>
                       );
                     })}
@@ -385,7 +393,7 @@ export const DashboardLayout: React.FC = () => {
                     <Landmark
                       className={`w-4 h-4 ${isCommercialsActive ? "text-[#4FA800]" : "text-slate-500"}`}
                     />
-                    <span>Commercials</span>
+                    <span>{t("nav.commercials")}</span>
                   </div>
                   <ChevronDown
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${
@@ -402,12 +410,12 @@ export const DashboardLayout: React.FC = () => {
                     {commercialsSubItems.map((sub) => {
                       const isActive =
                         location.pathname === sub.path ||
-                        (sub.name === "Plans" &&
+                        (sub.name === "plans" &&
                           (location.pathname === "/commercials" ||
                             location.pathname.startsWith("/commercials/plans"))) ||
-                        (sub.name === "Packs" &&
+                        (sub.name === "packs" &&
                           location.pathname.startsWith("/commercials/packs")) ||
-                        (sub.name === "Add-ons" &&
+                        (sub.name === "add_ons" &&
                           location.pathname.startsWith("/commercials/add-ons"));
                       return (
                         <Link
@@ -419,7 +427,7 @@ export const DashboardLayout: React.FC = () => {
                               : "text-slate-500 hover:text-slate-800 hover:bg-slate-50 font-medium"
                           }`}
                         >
-                          {sub.name}
+                          {t(`nav.items.${sub.name}`)}
                         </Link>
                       );
                     })}
@@ -444,7 +452,7 @@ export const DashboardLayout: React.FC = () => {
                 >
                   <div className="flex items-center gap-2.5">
                     <IconComponent className="w-4 h-4 text-slate-500" />
-                    <span>{domain.name}</span>
+                    <span>{t(`nav.items.${domain.name}`)}</span>
                   </div>
                   <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
                 </Link>
@@ -460,7 +468,7 @@ export const DashboardLayout: React.FC = () => {
             className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 text-slate-500" />
-            <span>Back to Home</span>
+            <span>{t("nav.backToHome")}</span>
           </Link>
         </div>
       </aside>
@@ -474,21 +482,26 @@ export const DashboardLayout: React.FC = () => {
         {/* ============================================================ */}
         <header className="h-16 shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 shadow-2xs z-30">
           {/* Left side of Top Bar */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             {/* Mobile Hamburger toggle */}
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
               className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer"
-              aria-label="Toggle menu"
+              aria-label={t("nav.toggleMenu")}
             >
               <Menu className="w-5 h-5" />
             </button>
 
             {/* Role / PANEL Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/80 text-xs font-semibold text-slate-800 shadow-2xs">
-              <Store className="w-4 h-4 text-slate-600" />
-              <span className="hidden sm:inline">{roleName.toUpperCase()} PANEL</span>
-              <span className="sm:hidden">{roleName}</span>
+            <div className="inline-flex min-w-0 max-w-[14rem] items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/80 text-xs font-semibold text-slate-800 shadow-2xs">
+              <Store className="w-4 h-4 shrink-0 text-slate-600" />
+              <span
+                className="hidden sm:inline min-w-0 truncate uppercase"
+                title={t("nav.rolePanel", { role: roleName })}
+              >
+                {t("nav.rolePanel", { role: roleName })}
+              </span>
+              <span className="sm:hidden min-w-0 truncate">{roleName}</span>
             </div>
 
             {/* Open / Accepting Online Toggle */}
@@ -506,22 +519,23 @@ export const DashboardLayout: React.FC = () => {
                   }`}
                 />
               </button>
-              <span className="text-xs font-semibold text-slate-700 hidden lg:inline">
-                {isOnlineAccepting ? "Open / Accepting Online" : "Closed / Offline"}
+              <span className="text-xs font-semibold text-slate-700 hidden xl:inline whitespace-nowrap">
+                {isOnlineAccepting ? t("nav.acceptingOnline") : t("nav.closedOffline")}
               </span>
             </div>
           </div>
 
           {/* Right side of Top Bar */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex shrink-0 items-center gap-3 sm:gap-4">
             {/* Search bar */}
-            <div className="relative hidden md:block w-60 lg:w-72">
+            <div className="relative hidden md:block w-40 lg:w-48 xl:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Order, KOT, bill, table..."
+                placeholder={t("nav.searchPlaceholder")}
+                aria-label={t("common.search")}
                 className="w-full pl-9 pr-3.5 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:border-[#65D000] focus:ring-1 focus:ring-[#65D000]/20 transition-all outline-none placeholder:text-slate-400"
               />
             </div>
@@ -529,7 +543,7 @@ export const DashboardLayout: React.FC = () => {
             {/* ONLINE Status Badge */}
             <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#EBF9E5] text-[#4FA800] border border-[#C6EEB2]">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4FA800] animate-pulse" />
-              <span>ONLINE</span>
+              <span>{t("nav.onlineBadge")}</span>
             </div>
 
             {/* User Account Trigger & Dropdown Menu */}
@@ -546,11 +560,13 @@ export const DashboardLayout: React.FC = () => {
                 </div>
 
                 {/* Name & Role Text */}
-                <div className="hidden text-left sm:block">
-                  <div className="text-xs font-bold text-slate-900 leading-tight">
+                <div className="hidden max-w-[10rem] text-left sm:block">
+                  <div className="truncate text-xs font-bold text-slate-900 leading-tight">
                     {displayName}
                   </div>
-                  <div className="text-[11px] text-slate-400 leading-tight">{roleName}</div>
+                  <div className="truncate text-[11px] text-slate-400 leading-tight">
+                    {roleName}
+                  </div>
                 </div>
 
                 <ChevronDown
@@ -580,7 +596,28 @@ export const DashboardLayout: React.FC = () => {
                     className="flex items-center gap-3 px-2 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                   >
                     <UserIcon className="w-4 h-4 text-slate-500" />
-                    <span>My Profile</span>
+                    <span>{t("nav.myProfile")}</span>
+                  </Link>
+
+                  {/* Navigation: Settings and Language (Settings > Language section) */}
+                  <Link
+                    to="/settings"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="flex items-center gap-3 px-2 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    <SettingsIcon className="w-4 h-4 text-slate-500" />
+                    <span>{t("nav.settings")}</span>
+                  </Link>
+                  <Link
+                    to="/settings#language"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="flex items-center gap-3 px-2 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    <Globe className="w-4 h-4 text-slate-500" />
+                    <span className="min-w-0 flex-1">{t("nav.language")}</span>
+                    <span className="shrink-0 text-[11px] font-medium text-slate-400">
+                      {getLocaleMeta(activeLanguage)?.nativeName}
+                    </span>
                   </Link>
 
                   <div className="my-2 border-t border-slate-100" />
@@ -592,7 +629,7 @@ export const DashboardLayout: React.FC = () => {
                     className="w-full flex items-center gap-3 px-2 py-2 rounded-xl text-xs font-semibold text-[#EF4444] hover:bg-red-50/70 transition-colors cursor-pointer text-left"
                   >
                     <LogOut className="w-4 h-4 text-[#EF4444]" />
-                    <span>Sign Out</span>
+                    <span>{t("nav.signOut")}</span>
                   </button>
                 </div>
               )}

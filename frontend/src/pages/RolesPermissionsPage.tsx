@@ -17,8 +17,12 @@ import {
   ShieldCheck,
   Loader2,
 } from "lucide-react";
+import { Trans, useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { roleApi } from "../api/role.api";
 import { usePermissions } from "../hooks/use-permissions";
+import { localizeError } from "../i18n/errors";
+import { codeLabel, statusLabel } from "../i18n/labels";
 
 export type FeatureCategory =
   "all" | "commercials" | "partner_detail" | "organization" | "access_control" | "system";
@@ -99,6 +103,7 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
 };
 
 // Base definitions of the actual application pages & features
+// i18n-ignore-start: static catalogue whose text is also the API payload; shown translated via roles.features.<id>.* keys
 export const DEFAULT_FEATURES: FeaturePermission[] = [
   {
     id: "feat_partner_review",
@@ -483,6 +488,7 @@ export const DEFAULT_FEATURES: FeaturePermission[] = [
     ],
   },
 ];
+// i18n-ignore-end
 
 // Helper to generate blank default features for new role
 export const getBlankFeatures = (): FeaturePermission[] => {
@@ -493,7 +499,56 @@ export const getBlankFeatures = (): FeaturePermission[] => {
   }));
 };
 
+// ---------------------------------------------------------------------------
+// Display text for the static permission catalogue.
+// The catalogue (and the payload sent to the API) stays in English; what the admin SEES is looked
+// up by feature id / action key, falling back to the original text for ids we do not know yet.
+// ---------------------------------------------------------------------------
+const featureName = (t: TFunction, feat: Pick<FeaturePermission, "id" | "name">): string =>
+  t(`roles.features.${feat.id}.name`, { defaultValue: feat.name });
+
+const featureDescription = (
+  t: TFunction,
+  feat: Pick<FeaturePermission, "id" | "description">
+): string => t(`roles.features.${feat.id}.description`, { defaultValue: feat.description });
+
+const actionLabel = (t: TFunction, featureId: string, act: GranularAction): string =>
+  t(`roles.features.${featureId}.actions.${act.key}.label`, { defaultValue: act.label });
+
+const actionDescription = (t: TFunction, featureId: string, act: GranularAction): string =>
+  t(`roles.features.${featureId}.actions.${act.key}.description`, {
+    defaultValue: act.description,
+  });
+
+/** Scope codes as stored by the API ("Platform", "One organization", ...). */
+const ALL_SCOPES = "All Scopes";
+const SCOPE_VALUES = [
+  "Platform",
+  "Assigned platform scope",
+  "One organization",
+  "Assigned locations",
+  "Specific outlet",
+] as const;
+
+const scopeLabel = (t: TFunction, scope: string): string =>
+  scope === ALL_SCOPES ? t("roles.scope.allScopes") : codeLabel(t, "roles.scope", scope);
+
+const ACCESS_LEVEL_KEYS: Record<AccessLevel, string> = {
+  none: "roles.access.none",
+  read_only: "roles.access.readOnly",
+  full: "roles.access.full",
+};
+
+const CATEGORY_VALUES = [
+  "commercials",
+  "partner_detail",
+  "organization",
+  "access_control",
+  "system",
+] as const;
+
 export const RolesPermissionsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { can } = usePermissions();
 
   const canCreateRole = can("feat_roles_templates", "create_roles");
@@ -511,17 +566,17 @@ export const RolesPermissionsPage: React.FC = () => {
   }
   const isRolesRoute =
     locationPath.endsWith("/roles") || locationPath.endsWith("/roles-permissions");
-  const pageTitle = isRolesRoute ? "Security Templates" : "Security Policies";
+  const pageTitle = isRolesRoute ? t("roles.page.templatesTitle") : t("roles.page.policiesTitle");
   const pageSubtitle = isRolesRoute
-    ? "Set default permissions templates or customize them to build custom roles"
-    : "Configure feature-by-feature access controls, review actions, and security policies";
+    ? t("roles.page.templatesSubtitle")
+    : t("roles.page.policiesSubtitle");
 
   // State
   const [roles, setRoles] = useState<SecurityRole[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedScopeFilter, setSelectedScopeFilter] = useState<string>("All Scopes");
+  const [selectedScopeFilter, setSelectedScopeFilter] = useState<string>(ALL_SCOPES);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
 
   // Modal State
@@ -569,7 +624,7 @@ export const RolesPermissionsPage: React.FC = () => {
       const res = await roleApi.getAll();
       setRoles(res.roles || []);
     } catch (err: any) {
-      showNotification(err.message || "Failed to load roles", "error");
+      showNotification(localizeError(err, "roles.toast.loadFailed"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -605,7 +660,7 @@ export const RolesPermissionsPage: React.FC = () => {
       if (!formDescription) {
         setFormDescription(found.description);
       }
-      showNotification(`Copied permissions and scope from "${found.name}"`, "info");
+      showNotification(t("roles.toast.copiedFromTemplate", { name: found.name }), "info");
     }
   };
 
@@ -687,10 +742,10 @@ export const RolesPermissionsPage: React.FC = () => {
     );
     showNotification(
       level === "full"
-        ? "Applied Full Access across all features"
+        ? t("roles.toast.appliedFull")
         : level === "read_only"
-          ? "Applied Read-Only access across all features"
-          : "Cleared all permissions",
+          ? t("roles.toast.appliedReadOnly")
+          : t("roles.toast.clearedAll"),
       "info"
     );
   };
@@ -698,7 +753,7 @@ export const RolesPermissionsPage: React.FC = () => {
   // Open Create Modal
   const handleOpenCreateModal = () => {
     if (!canCreateRole) {
-      showNotification("You do not have permission to create roles", "error");
+      showNotification(t("roles.toast.noPermissionCreate"), "error");
       return;
     }
     setSelectedRole(null);
@@ -717,7 +772,7 @@ export const RolesPermissionsPage: React.FC = () => {
   // Open Edit Modal
   const handleOpenEditModal = (role: SecurityRole) => {
     if (!canEditRole) {
-      showNotification("You do not have permission to edit roles", "error");
+      showNotification(t("roles.toast.noPermissionEdit"), "error");
       return;
     }
     setSelectedRole(role);
@@ -750,15 +805,15 @@ export const RolesPermissionsPage: React.FC = () => {
   const handleSaveRole = async (e: React.FormEvent) => {
     e.preventDefault();
     if (activeModalType === "edit" && !canEditRole) {
-      showNotification("You do not have permission to edit roles", "error");
+      showNotification(t("roles.toast.noPermissionEdit"), "error");
       return;
     }
     if (activeModalType === "create" && !canCreateRole) {
-      showNotification("You do not have permission to create roles", "error");
+      showNotification(t("roles.toast.noPermissionCreate"), "error");
       return;
     }
     if (!formName.trim()) {
-      showNotification("Role name is required", "error");
+      showNotification(t("roles.toast.nameRequired"), "error");
       return;
     }
 
@@ -769,7 +824,7 @@ export const RolesPermissionsPage: React.FC = () => {
         (activeModalType === "create" || r.id !== selectedRole?.id)
     );
     if (duplicateRole) {
-      showNotification(`A security role with name "${formName.trim()}" already exists`, "error");
+      showNotification(t("roles.toast.duplicateName", { name: formName.trim() }), "error");
       return;
     }
 
@@ -787,7 +842,7 @@ export const RolesPermissionsPage: React.FC = () => {
         });
 
         setRoles((prev) => prev.map((r) => (r.id === selectedRole.id ? res.role : r)));
-        showNotification(`Role "${formName}" updated successfully!`, "success");
+        showNotification(t("roles.toast.updated", { name: formName }), "success");
       } else {
         const res = await roleApi.create({
           name: formName.trim(),
@@ -799,12 +854,12 @@ export const RolesPermissionsPage: React.FC = () => {
         });
 
         setRoles((prev) => [...prev, res.role]);
-        showNotification(`New custom role "${formName}" created!`, "success");
+        showNotification(t("roles.toast.created", { name: formName }), "success");
       }
 
       setActiveModalType(null);
     } catch (err: any) {
-      showNotification(err.message || "Failed to save role", "error");
+      showNotification(localizeError(err, "roles.toast.saveFailed"), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -814,17 +869,17 @@ export const RolesPermissionsPage: React.FC = () => {
   const handleDeleteRole = async () => {
     if (!roleToDelete) return;
     if (!canDeleteRole) {
-      showNotification("You do not have permission to delete roles", "error");
+      showNotification(t("roles.toast.noPermissionDelete"), "error");
       return;
     }
     setIsSubmitting(true);
     try {
       await roleApi.delete(roleToDelete.id);
       setRoles((prev) => prev.filter((r) => r.id !== roleToDelete.id));
-      showNotification(`Role "${roleToDelete.name}" deleted successfully.`, "info");
+      showNotification(t("roles.toast.deleted", { name: roleToDelete.name }), "info");
       setRoleToDelete(null);
     } catch (err: any) {
-      showNotification(err.message || "Failed to delete role", "error");
+      showNotification(localizeError(err, "roles.toast.deleteFailed"), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -857,21 +912,22 @@ export const RolesPermissionsPage: React.FC = () => {
         role.name.toLowerCase().includes(q) ||
         role.key.toLowerCase().includes(q) ||
         role.scope.toLowerCase().includes(q) ||
+        scopeLabel(t, role.scope).toLowerCase().includes(q) ||
         role.description.toLowerCase().includes(q);
 
       const matchesScope =
-        selectedScopeFilter === "All Scopes" ||
+        selectedScopeFilter === ALL_SCOPES ||
         role.scope.toLowerCase() === selectedScopeFilter.toLowerCase();
 
       return matchesSearch && matchesScope;
     });
-  }, [roles, searchQuery, selectedScopeFilter]);
+  }, [roles, searchQuery, selectedScopeFilter, t]);
 
   return (
     <div className="w-full space-y-6 pb-14 font-sans antialiased text-slate-800">
       {/* Toast Notification */}
       {notification.show && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all animate-in fade-in slide-in-from-top-3 duration-200 bg-white border-slate-200">
+        <div className="fixed top-20 right-6 z-50 max-w-[min(28rem,calc(100vw-2rem))] flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all animate-in fade-in slide-in-from-top-3 duration-200 bg-white border-slate-200">
           {notification.type === "success" && (
             <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
           )}
@@ -905,7 +961,7 @@ export const RolesPermissionsPage: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search roles or permissions..."
+              placeholder={t("roles.page.searchPlaceholder")}
               className="w-full pl-8 pr-8 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all font-medium placeholder:text-slate-400 shadow-2xs"
             />
             {searchQuery && (
@@ -927,20 +983,17 @@ export const RolesPermissionsPage: React.FC = () => {
               className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-2xs cursor-pointer inline-flex items-center gap-2"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
-              <span>{selectedScopeFilter === "All Scopes" ? "Filter" : selectedScopeFilter}</span>
+              <span>
+                {selectedScopeFilter === ALL_SCOPES
+                  ? t("common.filter")
+                  : scopeLabel(t, selectedScopeFilter)}
+              </span>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </button>
 
             {isFilterDropdownOpen && (
-              <div className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1 text-xs animate-in fade-in zoom-in-95 duration-150">
-                {[
-                  "All Scopes",
-                  "Platform",
-                  "Assigned platform scope",
-                  "One organization",
-                  "Assigned locations",
-                  "Specific outlet",
-                ].map((scope) => (
+              <div className="absolute right-0 mt-1.5 w-max min-w-[13rem] max-w-[18rem] bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1 text-xs animate-in fade-in zoom-in-95 duration-150">
+                {[ALL_SCOPES, ...SCOPE_VALUES].map((scope) => (
                   <button
                     key={scope}
                     type="button"
@@ -954,7 +1007,7 @@ export const RolesPermissionsPage: React.FC = () => {
                         : "text-slate-700"
                     }`}
                   >
-                    {scope}
+                    {scopeLabel(t, scope)}
                   </button>
                 ))}
               </div>
@@ -969,7 +1022,7 @@ export const RolesPermissionsPage: React.FC = () => {
               className="px-4 py-2 bg-[#65D000] hover:bg-[#57B500] text-white rounded-xl text-xs font-bold transition-all shadow-sm hover:shadow cursor-pointer inline-flex items-center justify-center gap-1.5 shrink-0"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span>Create Role</span>
+              <span>{t("roles.page.createRole")}</span>
             </button>
           )}
         </div>
@@ -981,17 +1034,16 @@ export const RolesPermissionsPage: React.FC = () => {
       {isLoading ? (
         <div className="py-20 flex flex-col items-center justify-center text-slate-400 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
           <Loader2 className="w-8 h-8 animate-spin text-[#65D000] mb-2" />
-          <span className="text-xs font-semibold text-slate-600">Loading security roles...</span>
+          <span className="text-xs font-semibold text-slate-600">{t("roles.page.loading")}</span>
         </div>
       ) : roles.length === 0 ? (
         <div className="py-16 px-6 bg-white border border-slate-200/80 rounded-2xl text-center shadow-2xs">
           <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-200 text-slate-400 flex items-center justify-center mx-auto mb-3">
             <Shield className="w-6 h-6 stroke-[1.8]" />
           </div>
-          <h3 className="text-base font-bold text-slate-800">No security roles found</h3>
+          <h3 className="text-base font-bold text-slate-800">{t("roles.page.emptyTitle")}</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            No roles have been created yet. Define your first custom role template with granular
-            page and action permissions.
+            {t("roles.page.emptyBody")}
           </p>
           {canCreateRole && (
             <button
@@ -1000,7 +1052,7 @@ export const RolesPermissionsPage: React.FC = () => {
               className="mt-4 px-4 py-2 text-xs font-bold text-white bg-[#65D000] hover:bg-[#57B500] rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span>Create First Role</span>
+              <span>{t("roles.page.createFirstRole")}</span>
             </button>
           )}
         </div>
@@ -1012,6 +1064,7 @@ export const RolesPermissionsPage: React.FC = () => {
               (acc, feat) => acc + feat.actions.filter((a) => a.enabled).length,
               0
             );
+            const totalCount = role.features.reduce((acc, feat) => acc + feat.actions.length, 0);
             const reviewFeature = role.features.find((f) => f.id === "feat_partner_review");
             const locationsFeature = role.features.find((f) => f.id === "feat_partner_locations");
 
@@ -1036,14 +1089,16 @@ export const RolesPermissionsPage: React.FC = () => {
                           : "bg-slate-100 text-slate-500 border-slate-200"
                       }`}
                     >
-                      {role.status}
+                      {statusLabel(t, role.status)}
                     </span>
                   </div>
 
                   {/* Scope Row */}
-                  <div className="mt-2.5 text-xs flex items-center gap-1.5">
-                    <span className="text-slate-400 font-medium">Scope</span>
-                    <span className="text-slate-700 font-semibold">{role.scope}</span>
+                  <div className="mt-2.5 text-xs flex flex-wrap items-center gap-1.5">
+                    <span className="text-slate-400 font-medium">{t("roles.card.scope")}</span>
+                    <span className="text-slate-700 font-semibold">
+                      {scopeLabel(t, role.scope)}
+                    </span>
                   </div>
 
                   {/* Description */}
@@ -1054,10 +1109,10 @@ export const RolesPermissionsPage: React.FC = () => {
                   {/* Project-Specific Highlights: Locations & Review Actions */}
                   <div className="mt-4 p-3 bg-slate-50/70 border border-slate-200/60 rounded-xl space-y-2">
                     {/* Locations Table Access */}
-                    <div className="flex items-center justify-between text-[11px]">
+                    <div className="flex items-center justify-between gap-2 text-[11px]">
                       <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                        <MapPin className="w-3 h-3 text-slate-400" />
-                        Locations Table:
+                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                        {t("roles.card.locationsTable")}
                       </span>
                       <span
                         className={`font-semibold px-2 py-0.5 rounded-md ${
@@ -1069,18 +1124,18 @@ export const RolesPermissionsPage: React.FC = () => {
                         }`}
                       >
                         {locationsFeature?.accessLevel === "full"
-                          ? "Full Access (Add/Edit)"
+                          ? t("roles.card.fullAccessAddEdit")
                           : locationsFeature?.accessLevel === "read_only"
-                            ? "Read-Only"
-                            : "No Access"}
+                            ? t("roles.access.readOnly")
+                            : t("roles.access.none")}
                       </span>
                     </div>
 
                     {/* Review Actions Permitted */}
-                    <div className="flex items-center justify-between text-[11px]">
+                    <div className="flex items-center justify-between gap-2 text-[11px]">
                       <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                        <ShieldCheck className="w-3 h-3 text-slate-400" />
-                        Review Actions:
+                        <ShieldCheck className="w-3 h-3 text-slate-400 shrink-0" />
+                        {t("roles.card.reviewActions")}
                       </span>
                       <div className="flex items-center gap-1 flex-wrap justify-end">
                         {reviewFeature?.actions.some((a) => a.enabled) ? (
@@ -1092,16 +1147,16 @@ export const RolesPermissionsPage: React.FC = () => {
                                 className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-700"
                               >
                                 {a.key === "approve_partner"
-                                  ? "Approve"
+                                  ? t("roles.card.review.approve")
                                   : a.key === "reject_partner"
-                                    ? "Reject"
+                                    ? t("roles.card.review.reject")
                                     : a.key === "mark_under_review"
-                                      ? "Review"
-                                      : "Delete"}
+                                      ? t("roles.card.review.review")
+                                      : t("roles.card.review.delete")}
                               </span>
                             ))
                         ) : (
-                          <span className="text-slate-400 italic">None</span>
+                          <span className="text-slate-400 italic">{t("common.none")}</span>
                         )}
                       </div>
                     </div>
@@ -1113,11 +1168,15 @@ export const RolesPermissionsPage: React.FC = () => {
                   <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
                     <div className="flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{role.assignedText}</span>
+                      <span>
+                        {typeof role.assignedCount === "number"
+                          ? t("roles.card.staffAssigned", { count: role.assignedCount })
+                          : role.assignedText}
+                      </span>
                     </div>
                     <span className="text-slate-300">•</span>
                     <span className="text-[11px] text-slate-400">
-                      {enabledCount} of 22 privileges
+                      {t("roles.card.privileges", { enabled: enabledCount, total: totalCount })}
                     </span>
                   </div>
 
@@ -1127,7 +1186,7 @@ export const RolesPermissionsPage: React.FC = () => {
                       type="button"
                       onClick={() => handleOpenViewModal(role)}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                      title="View permissions"
+                      title={t("roles.card.viewTitle")}
                     >
                       <Eye className="w-4 h-4 stroke-[2]" />
                     </button>
@@ -1136,7 +1195,7 @@ export const RolesPermissionsPage: React.FC = () => {
                         type="button"
                         onClick={() => handleOpenEditModal(role)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="Edit role"
+                        title={t("roles.card.editTitle")}
                       >
                         <Pencil className="w-3.5 h-3.5 stroke-[2]" />
                       </button>
@@ -1146,7 +1205,7 @@ export const RolesPermissionsPage: React.FC = () => {
                         type="button"
                         onClick={() => setRoleToDelete(role)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                        title="Delete custom role"
+                        title={t("roles.card.deleteTitle")}
                       >
                         <Trash2 className="w-3.5 h-3.5 stroke-[2]" />
                       </button>
@@ -1167,10 +1226,10 @@ export const RolesPermissionsPage: React.FC = () => {
                 <Plus className="w-5 h-5 stroke-[2.5]" />
               </div>
               <h3 className="font-bold text-sm text-slate-800 group-hover:text-slate-900 transition-colors">
-                Add Custom Role
+                {t("roles.page.addCustomRole")}
               </h3>
               <p className="text-xs text-slate-400 mt-1 max-w-[240px] leading-relaxed">
-                Customize page accessibility, review actions, and locations table controls
+                {t("roles.page.addCustomRoleHint")}
               </p>
             </div>
           )}
@@ -1192,15 +1251,15 @@ export const RolesPermissionsPage: React.FC = () => {
                 <div>
                   <h3 className="text-base sm:text-lg font-bold text-slate-900">
                     {activeModalType === "create"
-                      ? "New custom role"
+                      ? t("roles.modal.createTitle")
                       : activeModalType === "edit"
-                        ? "Edit custom role"
-                        : `${formName} (Role Permissions)`}
+                        ? t("roles.modal.editTitle")
+                        : t("roles.modal.viewTitle", { name: formName })}
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     {activeModalType === "view"
-                      ? "Inspect page access rights, locations table permissions, and review actions"
-                      : "Configure feature accessibility, review lifecycle actions, and operational rights"}
+                      ? t("roles.modal.viewSubtitle")
+                      : t("roles.modal.editSubtitle")}
                   </p>
                 </div>
               </div>
@@ -1221,13 +1280,13 @@ export const RolesPermissionsPage: React.FC = () => {
                 {/* Role name */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Role name *
+                    {t("roles.form.roleName")}
                   </label>
                   <input
                     type="text"
                     required
                     disabled={isModalReadOnly}
-                    placeholder="e.g. Regional Supervisor"
+                    placeholder={t("roles.form.roleNamePlaceholder")}
                     value={formName}
                     onChange={(e) => handleNameChange(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all font-medium text-slate-900 placeholder:text-slate-400 disabled:opacity-75 disabled:cursor-not-allowed"
@@ -1236,7 +1295,9 @@ export const RolesPermissionsPage: React.FC = () => {
 
                 {/* Key */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Key *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    {t("roles.form.key")}
+                  </label>
                   <input
                     type="text"
                     required
@@ -1254,7 +1315,7 @@ export const RolesPermissionsPage: React.FC = () => {
                 {/* Scope */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Operational Scope
+                    {t("roles.form.operationalScope")}
                   </label>
                   <div className="relative">
                     <select
@@ -1263,11 +1324,11 @@ export const RolesPermissionsPage: React.FC = () => {
                       onChange={(e) => setFormScope(e.target.value)}
                       className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all font-medium text-slate-800 cursor-pointer appearance-none pr-7 disabled:opacity-75 disabled:cursor-not-allowed"
                     >
-                      <option value="Platform">Platform</option>
-                      <option value="Assigned platform scope">Assigned platform scope</option>
-                      <option value="One organization">One organization</option>
-                      <option value="Assigned locations">Assigned locations</option>
-                      <option value="Specific outlet">Specific outlet</option>
+                      {SCOPE_VALUES.map((scope) => (
+                        <option key={scope} value={scope}>
+                          {scopeLabel(t, scope)}
+                        </option>
+                      ))}
                     </select>
                     <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
@@ -1276,7 +1337,7 @@ export const RolesPermissionsPage: React.FC = () => {
                 {/* Copy from template */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Copy from template
+                    {t("roles.form.copyFromTemplate")}
                   </label>
                   <div className="relative">
                     <select
@@ -1285,7 +1346,7 @@ export const RolesPermissionsPage: React.FC = () => {
                       onChange={(e) => handleCopyFromTemplate(e.target.value)}
                       className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all font-medium text-slate-800 cursor-pointer appearance-none pr-7 disabled:opacity-75 disabled:cursor-not-allowed"
                     >
-                      <option value="">Select a default role...</option>
+                      <option value="">{t("roles.form.selectDefaultRole")}</option>
                       {roles.map((r) => (
                         <option key={r.id} value={r.key}>
                           {r.name}
@@ -1301,12 +1362,12 @@ export const RolesPermissionsPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 bg-slate-50/70 border border-slate-200/80 rounded-xl">
                 <div className="flex-1">
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Role Description
+                    {t("roles.form.roleDescription")}
                   </label>
                   <input
                     type="text"
                     disabled={isModalReadOnly}
-                    placeholder="Specify staff access duties and operational privileges..."
+                    placeholder={t("roles.form.roleDescriptionPlaceholder")}
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 font-medium focus:outline-none focus:ring-1 focus:ring-slate-400 disabled:opacity-75 disabled:cursor-not-allowed"
@@ -1319,10 +1380,10 @@ export const RolesPermissionsPage: React.FC = () => {
                     checked={formIsActive}
                     disabled={isModalReadOnly}
                     onChange={(val) => setFormIsActive(val)}
-                    ariaLabel="Toggle active role status"
+                    ariaLabel={t("roles.form.activeToggleAria")}
                   />
                   <span className="text-xs font-bold text-slate-800 select-none">
-                    Role is active and assignable
+                    {t("roles.form.activeLabel")}
                   </span>
                 </div>
               </div>
@@ -1335,16 +1396,16 @@ export const RolesPermissionsPage: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <h4 className="text-sm font-bold text-slate-900">
-                        Feature & Page Permissions Matrix
+                        {t("roles.matrix.title")}
                       </h4>
                       <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                        {totalEnabledPermissions} of {maxPermissions} active
+                        {t("roles.matrix.activeCount", {
+                          enabled: totalEnabledPermissions,
+                          total: maxPermissions,
+                        })}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Configure page access levels (None / Read-Only / Full Control) and granular
-                      action rights
-                    </p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t("roles.matrix.subtitle")}</p>
                   </div>
 
                   {/* Preset Shortcuts */}
@@ -1355,21 +1416,21 @@ export const RolesPermissionsPage: React.FC = () => {
                         onClick={() => applyPresetAll("full")}
                         className="text-[11px] font-semibold text-[#3E8800] bg-[#EEF9E8] px-2.5 py-1 rounded-lg hover:bg-[#DEF5CE] transition-colors cursor-pointer"
                       >
-                        Full Access All
+                        {t("roles.matrix.presetFull")}
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPresetAll("read_only")}
                         className="text-[11px] font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
                       >
-                        Read-Only All
+                        {t("roles.matrix.presetReadOnly")}
                       </button>
                       <button
                         type="button"
                         onClick={() => applyPresetAll("none")}
                         className="text-[11px] font-semibold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer"
                       >
-                        Clear All
+                        {t("roles.matrix.presetClear")}
                       </button>
                     </div>
                   )}
@@ -1383,37 +1444,26 @@ export const RolesPermissionsPage: React.FC = () => {
                       htmlFor="feature-category-filter"
                       className="text-xs font-bold text-slate-700 shrink-0"
                     >
-                      Module Category:
+                      {t("roles.matrix.moduleCategory")}
                     </label>
                     <div className="relative">
                       <select
                         id="feature-category-filter"
                         value={activeCategoryTab}
                         onChange={(e) => setActiveCategoryTab(e.target.value as FeatureCategory)}
-                        aria-label="Filter features by module category"
+                        aria-label={t("roles.matrix.categoryAria")}
                         className="appearance-none bg-white border border-slate-200 rounded-xl px-3 py-1.5 pr-8 text-xs font-semibold text-slate-800 shadow-2xs hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#65D000]/30 cursor-pointer"
                       >
-                        <option value="all">All Pages & Features ({formFeatures.length})</option>
-                        <option value="commercials">
-                          Commercials & Plans (
-                          {formFeatures.filter((f) => f.category === "commercials").length})
+                        <option value="all">
+                          {t("roles.category.all", { n: formFeatures.length })}
                         </option>
-                        <option value="partner_detail">
-                          Partner Detail & Review (
-                          {formFeatures.filter((f) => f.category === "partner_detail").length})
-                        </option>
-                        <option value="organization">
-                          Organization 360 (
-                          {formFeatures.filter((f) => f.category === "organization").length})
-                        </option>
-                        <option value="access_control">
-                          Users & Access Control (
-                          {formFeatures.filter((f) => f.category === "access_control").length})
-                        </option>
-                        <option value="system">
-                          Audit & System Logs (
-                          {formFeatures.filter((f) => f.category === "system").length})
-                        </option>
+                        {CATEGORY_VALUES.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {t(`roles.category.${cat}`, {
+                              n: formFeatures.filter((f) => f.category === cat).length,
+                            })}
+                          </option>
+                        ))}
                       </select>
                       <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
@@ -1421,9 +1471,11 @@ export const RolesPermissionsPage: React.FC = () => {
 
                   {/* Showing count indicator */}
                   <div className="text-[11px] text-slate-500 font-medium">
-                    Showing{" "}
-                    <span className="font-bold text-slate-800">{displayedFeatures.length}</span>{" "}
-                    {displayedFeatures.length === 1 ? "feature module" : "feature modules"}
+                    <Trans
+                      i18nKey="roles.matrix.showing"
+                      count={displayedFeatures.length}
+                      components={{ b: <span className="font-bold text-slate-800" /> }}
+                    />
                   </div>
                 </div>
 
@@ -1445,14 +1497,14 @@ export const RolesPermissionsPage: React.FC = () => {
                           <div>
                             <div className="flex items-center gap-2">
                               <h5 className="text-xs sm:text-sm font-bold text-slate-900">
-                                {feat.name}
+                                {featureName(t, feat)}
                               </h5>
                               <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
                                 {feat.pagePath}
                               </span>
                             </div>
                             <p className="text-xs text-slate-500 mt-1 font-normal">
-                              {feat.description}
+                              {featureDescription(t, feat)}
                             </p>
                           </div>
 
@@ -1476,11 +1528,7 @@ export const RolesPermissionsPage: React.FC = () => {
                                       : "text-slate-600 hover:text-slate-900"
                                   }`}
                                 >
-                                  {lvl === "none"
-                                    ? "No Access"
-                                    : lvl === "read_only"
-                                      ? "Read-Only"
-                                      : "Full Control"}
+                                  {t(ACCESS_LEVEL_KEYS[lvl])}
                                 </button>
                               );
                             })}
@@ -1490,7 +1538,7 @@ export const RolesPermissionsPage: React.FC = () => {
                         {/* Granular Action Switches Grid */}
                         <div className="p-4 bg-white/70 rounded-b-2xl">
                           <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5">
-                            Specific Action Permissions
+                            {t("roles.matrix.specificActions")}
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -1505,13 +1553,13 @@ export const RolesPermissionsPage: React.FC = () => {
                               >
                                 <div className="space-y-0.5 pr-2">
                                   <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                                    <span>{act.label}</span>
+                                    <span>{actionLabel(t, feat.id, act)}</span>
                                     {act.enabled && (
                                       <span className="w-1.5 h-1.5 rounded-full bg-[#65D000]" />
                                     )}
                                   </div>
-                                  <div className="text-[11px] text-slate-500 font-normal leading-tight">
-                                    {act.description}
+                                  <div className="text-[11px] text-slate-500 font-normal leading-snug">
+                                    {actionDescription(t, feat.id, act)}
                                   </div>
                                 </div>
 
@@ -1520,7 +1568,10 @@ export const RolesPermissionsPage: React.FC = () => {
                                   checked={act.enabled}
                                   disabled={isModalReadOnly}
                                   onChange={() => handleToggleAction(feat.id, act.key)}
-                                  ariaLabel={`${feat.name} - ${act.label}`}
+                                  ariaLabel={t("roles.matrix.toggleAria", {
+                                    feature: featureName(t, feat),
+                                    action: actionLabel(t, feat.id, act),
+                                  })}
                                 />
                               </div>
                             ))}
@@ -1539,7 +1590,7 @@ export const RolesPermissionsPage: React.FC = () => {
             {/* Modal Footer */}
             <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
               <span className="text-[11px] sm:text-xs text-slate-500 font-normal">
-                Permissions take effect instantly across all designated users assigned to this role.
+                {t("roles.modal.footerNote")}
               </span>
 
               <div className="flex items-center justify-end gap-2.5">
@@ -1548,7 +1599,7 @@ export const RolesPermissionsPage: React.FC = () => {
                   onClick={() => setActiveModalType(null)}
                   className="px-5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors shadow-2xs cursor-pointer"
                 >
-                  {isModalReadOnly ? "Close" : "Cancel"}
+                  {isModalReadOnly ? t("common.close") : t("common.cancel")}
                 </button>
 
                 {!isModalReadOnly ? (
@@ -1559,7 +1610,7 @@ export const RolesPermissionsPage: React.FC = () => {
                     className="px-5 py-2 text-xs font-bold text-white bg-[#65D000] hover:bg-[#57B500] rounded-xl transition-all shadow-sm hover:shadow cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
                   >
                     {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                    <span>{isSubmitting ? "Saving..." : "Save Role"}</span>
+                    <span>{isSubmitting ? t("common.saving") : t("roles.modal.saveRole")}</span>
                   </button>
                 ) : canEditRole && selectedRole ? (
                   <button
@@ -1571,7 +1622,7 @@ export const RolesPermissionsPage: React.FC = () => {
                     }}
                     className="px-5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
                   >
-                    Edit This Role
+                    {t("roles.modal.editThisRole")}
                   </button>
                 ) : null}
               </div>
@@ -1591,14 +1642,17 @@ export const RolesPermissionsPage: React.FC = () => {
                 <Trash2 className="w-5 h-5 stroke-[2.2]" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Delete Custom Role</h3>
-                <p className="text-xs text-slate-500 mt-0.5">This action cannot be undone.</p>
+                <h3 className="text-base font-bold text-slate-900">{t("roles.delete.title")}</h3>
+                <p className="text-xs text-slate-500 mt-0.5">{t("roles.delete.warning")}</p>
               </div>
             </div>
 
             <div className="mt-4 p-3.5 bg-rose-50/60 rounded-xl border border-rose-100 text-xs text-rose-800 font-medium">
-              Are you sure you want to permanently delete role{" "}
-              <span className="font-bold">{roleToDelete.name}</span> (key: {roleToDelete.key})?
+              <Trans
+                i18nKey="roles.delete.confirm"
+                values={{ name: roleToDelete.name, roleKey: roleToDelete.key }}
+                components={{ b: <span className="font-bold" /> }}
+              />
             </div>
 
             <div className="flex items-center justify-end gap-2.5 mt-6">
@@ -1607,7 +1661,7 @@ export const RolesPermissionsPage: React.FC = () => {
                 onClick={() => setRoleToDelete(null)}
                 className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -1617,7 +1671,9 @@ export const RolesPermissionsPage: React.FC = () => {
               >
                 {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <Trash2 className="w-4 h-4" />
-                <span>{isSubmitting ? "Deleting..." : "Delete Role"}</span>
+                <span>
+                  {isSubmitting ? t("roles.delete.deleting") : t("roles.delete.deleteRole")}
+                </span>
               </button>
             </div>
           </div>

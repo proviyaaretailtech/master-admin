@@ -77,3 +77,53 @@
       "calt" 1;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Hindi / Devanagari                                                  */
+/* ------------------------------------------------------------------ */
+/* Deliberately NOT inside @layer: these rules must come after the Tailwind utilities so they
+   beat the leading-xxx and tracking-xxx classes at equal specificity.
+   The font itself is registered at runtime (src/i18n/fonts.ts, FontFace API) only when a
+   Devanagari language is about to be shown. :lang(hi) also matches the language-picker rows
+   (lang="hi") while the page is still in English. */
+:lang(hi) {
+  font-family:
+    "Noto Sans Devanagari",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Noto Sans",
+    "Mangal",
+    "Nirmala UI",
+    sans-serif;
+}
+
+/* Devanagari has tall matras above and below the line: Tailwind's tight line-heights
+   (leading-none, leading-tight, leading-snug and the 1rem default of text-xs) clip them. */
+:lang(hi),
+:lang(hi) * {
+  line-height: 1.6;
+  /* Letter-spacing (tracking-xxx) breaks the joined headline of Devanagari words. */
+  letter-spacing: normal;
+}
+
+/* Tiny sizes are hard to read in Devanagari; bump them one step. */
+:lang(hi) .text-\[9px\],
+:lang(hi) .text-\[10px\] {
+  font-size: 11px;
+}
+:lang(hi) .text-\[11px\] {
+  font-size: 12px;
+}
+
+/* A very long unbroken word must not push a button or cell wider than its box. break-word
+   (unlike "anywhere") keeps the minimum column width at the longest word, so tables do not
+   collapse into one-letter columns. */
+:lang(hi) button,
+:lang(hi) th,
+:lang(hi) td,
+:lang(hi) label {
+  overflow-wrap: break-word;
+}

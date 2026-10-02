@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Save,
@@ -14,9 +15,17 @@ import {
 import { packApi, CreatePackPayload } from "../api/pack.api";
 import { planApi, CommercialPlanItem } from "../api/plan.api";
 import { usePermissions } from "../hooks/use-permissions";
+import { localizeError } from "../i18n/errors";
+
+// Errors are kept as a catalogue key or as the ERROR itself (never a finished string), so the
+// banner re-translates if the language changes while it is on screen.
+type PageError = { kind: "key"; key: string } | { kind: "api"; err: unknown; fallbackKey: string };
+// A success toast, kept as a key + values for the same reason.
+type PageToast = { key: "packs.toast.created" | "packs.toast.updated"; name: string };
 
 export const PackEditorPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
 
@@ -28,8 +37,8 @@ export const PackEditorPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(isEditMode);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [plans, setPlans] = useState<CommercialPlanItem[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [error, setError] = useState<PageError | null>(null);
+  const [toast, setToast] = useState<PageToast | null>(null);
 
   // Form State
   const [name, setName] = useState("");
@@ -119,8 +128,8 @@ export const PackEditorPage: React.FC = () => {
           setEffectiveDate("2026-03-01 00:00:00");
           setPrice(1499);
         }
-      } catch (err: any) {
-        setErrorMessage(err?.message || "Failed to load pack configuration");
+      } catch (err: unknown) {
+        setError({ kind: "api", err, fallbackKey: "packs.toast.loadConfigFailed" });
       } finally {
         setIsLoading(false);
       }
@@ -142,7 +151,7 @@ export const PackEditorPage: React.FC = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setErrorMessage("Pack name is required");
+      setError({ kind: "key", key: "packs.editor.validation.nameRequired" });
       return;
     }
 
@@ -155,7 +164,7 @@ export const PackEditorPage: React.FC = () => {
     }
 
     setIsSaving(true);
-    setErrorMessage(null);
+    setError(null);
 
     const payload: CreatePackPayload = {
       name: name.trim(),
@@ -175,14 +184,14 @@ export const PackEditorPage: React.FC = () => {
     try {
       if (isEditMode && id) {
         await packApi.update(id, payload);
-        setToastMessage(`Feature pack '${name}' updated successfully.`);
+        setToast({ key: "packs.toast.updated", name });
       } else {
         await packApi.create(payload);
-        setToastMessage(`Feature pack '${name}' created successfully.`);
+        setToast({ key: "packs.toast.created", name });
       }
       setTimeout(() => navigate("/commercials/packs"), 800);
-    } catch (err: any) {
-      setErrorMessage(err?.message || "Failed to save feature pack");
+    } catch (err: unknown) {
+      setError({ kind: "api", err, fallbackKey: "packs.toast.saveFailed" });
       setIsSaving(false);
     }
   };
@@ -191,7 +200,7 @@ export const PackEditorPage: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center py-24 bg-white min-h-[50vh]">
         <Loader2 className="w-8 h-8 text-[#15803D] animate-spin mb-3" />
-        <p className="text-sm font-medium text-slate-600">Loading pack configuration...</p>
+        <p className="text-sm font-medium text-slate-600">{t("packs.editor.loading")}</p>
       </div>
     );
   }
@@ -199,10 +208,10 @@ export const PackEditorPage: React.FC = () => {
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       {/* Toast */}
-      {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 bg-emerald-800 text-white px-4 py-3 rounded-lg shadow-lg text-sm">
+      {toast && (
+        <div className="fixed top-5 right-5 z-50 max-w-[min(28rem,calc(100vw-2rem))] flex items-center gap-2 bg-emerald-800 text-white px-4 py-3 rounded-lg shadow-lg text-sm">
           <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-          <span>{toastMessage}</span>
+          <span>{t(toast.key, { name: toast.name })}</span>
         </div>
       )}
 
@@ -211,25 +220,29 @@ export const PackEditorPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-1">
             <Link to="/commercials/packs" className="hover:underline text-slate-600">
-              Master
+              {t("packs.shared.breadcrumbMaster")}
             </Link>
             <span>/</span>
             <Link to="/commercials/packs" className="hover:underline text-slate-600">
-              Commercials
+              {t("packs.shared.breadcrumbCommercials")}
             </Link>
             <span>/</span>
             <Link to="/commercials/packs" className="hover:underline text-slate-600">
-              Packs
+              {t("packs.shared.breadcrumbPacks")}
             </Link>
             {isEditMode && (
               <>
                 <span>/</span>
-                <span className="text-slate-800 font-semibold">{name || "Feature Pack"}</span>
+                <span className="text-slate-800 font-semibold">
+                  {name || t("packs.editor.featurePackFallback")}
+                </span>
               </>
             )}
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            {isEditMode ? `Edit ${name || "Feature"} Pack` : "Create Feature Pack"}
+            {isEditMode
+              ? t("packs.editor.titleEdit", { name: name || t("packs.editor.featureFallback") })
+              : t("packs.shared.createPack")}
           </h1>
         </div>
 
@@ -240,7 +253,7 @@ export const PackEditorPage: React.FC = () => {
             className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back</span>
+            <span>{t("common.back")}</span>
           </button>
 
           {canSave && (
@@ -255,17 +268,19 @@ export const PackEditorPage: React.FC = () => {
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              <span>Save Feature Pack</span>
+              <span>{t("packs.editor.save")}</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Error Message */}
-      {errorMessage && (
+      {error && (
         <div className="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg text-xs">
           <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-          <span>{errorMessage}</span>
+          <span>
+            {error.kind === "key" ? t(error.key) : localizeError(error.err, error.fallbackKey)}
+          </span>
         </div>
       )}
 
@@ -274,8 +289,7 @@ export const PackEditorPage: React.FC = () => {
         <div className="flex items-start gap-2.5 p-3.5 bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] rounded-xl text-xs font-medium">
           <span className="text-amber-500 text-base leading-none">•</span>
           <div>
-            <span className="font-bold">Note: </span>
-            {prerequisiteNote}
+            <span className="font-bold">{t("packs.editor.noteLabel")}</span> {prerequisiteNote}
           </div>
         </div>
       )}
@@ -286,19 +300,19 @@ export const PackEditorPage: React.FC = () => {
         className="bg-white rounded-xl border border-slate-200 shadow-xs p-6 space-y-5"
       >
         <h2 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3">
-          Pack Configuration Details
+          {t("packs.editor.configDetails")}
         </h2>
 
         {/* PACK NAME */}
         <div>
           <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Pack Name
+            {t("packs.editor.field.packName")}
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Advanced Reporting Pack"
+            placeholder={t("packs.editor.placeholder.packName")}
             className="w-full px-3.5 py-2.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-hidden focus:border-[#15803D] focus:ring-1 focus:ring-[#15803D]"
             required
           />
@@ -307,29 +321,27 @@ export const PackEditorPage: React.FC = () => {
         {/* PACK CODE (Identifier) */}
         <div>
           <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Pack Code (Unique Identifier)
+            {t("packs.editor.field.packCode")}
           </label>
           <input
             type="text"
             value={packCode}
             onChange={(e) => setPackCode(e.target.value)}
-            placeholder="e.g. pk-adv-rep-99"
+            placeholder={t("packs.editor.placeholder.packCode")}
             className="w-full px-3.5 py-2.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-hidden focus:border-[#15803D] focus:ring-1 focus:ring-[#15803D]"
           />
-          <p className="text-[11px] text-slate-400 mt-1">
-            Leave blank to auto-generate from the pack name.
-          </p>
+          <p className="text-[11px] text-slate-400 mt-1">{t("packs.editor.hint.packCode")}</p>
         </div>
 
         {/* COMPATIBLE PLANS (Clean Searchable Dropdown - Published Plans Only) */}
         <div ref={planDropdownRef} className="relative">
           <div className="flex items-center justify-between mb-1.5">
             <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Compatible Plans
+              {t("packs.editor.field.compatiblePlans")}
             </label>
             {selectedPlans.length > 0 && (
               <span className="text-[11px] font-semibold text-[#15803D]">
-                {selectedPlans.length} plan{selectedPlans.length > 1 ? "s" : ""} selected
+                {t("packs.editor.plansSelected", { count: selectedPlans.length })}
               </span>
             )}
           </div>
@@ -346,7 +358,7 @@ export const PackEditorPage: React.FC = () => {
             <div className="flex flex-wrap items-center gap-1.5 flex-1 min-w-0">
               {selectedPlans.length === 0 ? (
                 <span className="text-xs text-slate-400 pl-1.5 select-none">
-                  Click to select published plans (or leave empty for All Plans)...
+                  {t("packs.editor.plansPlaceholder")}
                 </span>
               ) : (
                 selectedPlans.map((planName) => (
@@ -363,7 +375,7 @@ export const PackEditorPage: React.FC = () => {
                         handleRemovePlan(planName);
                       }}
                       className="text-[#2B7000] hover:text-rose-600 transition-colors p-0.5 rounded cursor-pointer"
-                      title="Remove plan"
+                      title={t("packs.editor.removePlan")}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -383,7 +395,7 @@ export const PackEditorPage: React.FC = () => {
                   }}
                   className="text-[11px] font-semibold text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                 >
-                  Clear
+                  {t("packs.editor.clear")}
                 </button>
               )}
               <ChevronDown
@@ -406,7 +418,7 @@ export const PackEditorPage: React.FC = () => {
                     type="text"
                     value={planSearchTerm}
                     onChange={(e) => setPlanSearchTerm(e.target.value)}
-                    placeholder="Search published plans..."
+                    placeholder={t("packs.editor.searchPlans")}
                     className="w-full text-xs text-slate-800 placeholder:text-slate-400 bg-transparent border-none outline-none focus:outline-hidden"
                     autoFocus
                   />
@@ -419,7 +431,7 @@ export const PackEditorPage: React.FC = () => {
                         setPlanSearchTerm("");
                       }}
                       className="text-slate-400 hover:text-slate-600 text-xs px-1 cursor-pointer"
-                      title="Clear search"
+                      title={t("packs.editor.clearSearch")}
                     >
                       ×
                     </button>
@@ -434,9 +446,9 @@ export const PackEditorPage: React.FC = () => {
                     e.stopPropagation();
                     setSelectedPlans(publishedPlans.map((p) => p.name));
                   }}
-                  className="px-2.5 py-1.5 text-xs font-semibold text-[#15803D] hover:bg-[#DEF5CE] rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+                  className="px-2.5 py-1.5 text-xs font-semibold text-[#15803D] hover:bg-[#DEF5CE] rounded-lg transition-colors cursor-pointer"
                 >
-                  Select All
+                  {t("packs.editor.selectAll")}
                 </button>
 
                 {/* Cross Button within the dropdown to clear all things */}
@@ -449,7 +461,7 @@ export const PackEditorPage: React.FC = () => {
                     setPlanSearchTerm("");
                   }}
                   className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0"
-                  title="Clear all"
+                  title={t("packs.editor.clearAll")}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -460,8 +472,8 @@ export const PackEditorPage: React.FC = () => {
                 {filteredPlans.length === 0 ? (
                   <div className="py-8 text-center text-xs text-slate-400">
                     {publishedPlans.length === 0
-                      ? "No published commercial plans found"
-                      : "No matching published plans"}
+                      ? t("packs.editor.noPublishedPlans")
+                      : t("packs.editor.noMatchingPlans")}
                   </div>
                 ) : (
                   filteredPlans.map((plan) => {
@@ -500,11 +512,11 @@ export const PackEditorPage: React.FC = () => {
                           {isSelected ? (
                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#15803D]">
                               <Check className="w-3.5 h-3.5" />
-                              <span>Added</span>
+                              <span>{t("packs.editor.added")}</span>
                             </span>
                           ) : (
                             <span className="inline-flex items-center text-[11px] font-semibold text-slate-400">
-                              + Add
+                              {t("packs.editor.addPlan")}
                             </span>
                           )}
                         </div>
@@ -517,8 +529,7 @@ export const PackEditorPage: React.FC = () => {
           )}
 
           <p className="text-[11px] text-slate-400 mt-1.5">
-            Select plans before plan is eligible to run with this feature pack. Leave empty to allow
-            compatibility across all commercial plans.
+            {t("packs.editor.hint.compatiblePlans")}
           </p>
         </div>
 
@@ -526,7 +537,7 @@ export const PackEditorPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-              INR Price (Monthly)
+              {t("packs.editor.field.priceMonthly")}
             </label>
             <div className="relative">
               <span className="absolute left-3.5 top-2.5 text-xs font-bold text-slate-400">₹</span>
@@ -544,7 +555,7 @@ export const PackEditorPage: React.FC = () => {
 
           <div>
             <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-              Effective Date (Asia/Kolkata timezone)
+              {t("packs.editor.field.effectiveDate")}
             </label>
             <input
               type="text"
@@ -559,13 +570,13 @@ export const PackEditorPage: React.FC = () => {
         {/* EXTENDED LIMITS */}
         <div>
           <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Extended Limits
+            {t("packs.editor.field.extendedLimits")}
           </label>
           <input
             type="text"
             value={extendedLimits}
             onChange={(e) => setExtendedLimits(e.target.value)}
-            placeholder="e.g. Adds +5 custom metrics panels, unlimited scheduled reports to target workspace profiles."
+            placeholder={t("packs.editor.placeholder.extendedLimits")}
             className="w-full px-3.5 py-2.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-hidden focus:border-[#15803D] focus:ring-1 focus:ring-[#15803D]"
           />
         </div>
@@ -574,26 +585,26 @@ export const PackEditorPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
           <div>
             <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-              Feature Highlights Title
+              {t("packs.editor.field.highlightsTitle")}
             </label>
             <input
               type="text"
               value={includedFeatureTitle}
               onChange={(e) => setIncludedFeatureTitle(e.target.value)}
-              placeholder="e.g. Custom SQL, Scheduled PDF"
+              placeholder={t("packs.editor.placeholder.highlightsTitle")}
               className="w-full px-3.5 py-2.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-hidden focus:border-[#15803D] focus:ring-1 focus:ring-[#15803D]"
             />
           </div>
 
           <div>
             <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-              Feature Highlights Subtitle
+              {t("packs.editor.field.highlightsSubtitle")}
             </label>
             <input
               type="text"
               value={includedFeatureSubtitle}
               onChange={(e) => setIncludedFeatureSubtitle(e.target.value)}
-              placeholder="e.g. Up to 50 scheduled dashboards"
+              placeholder={t("packs.editor.placeholder.highlightsSubtitle")}
               className="w-full px-3.5 py-2.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-hidden focus:border-[#15803D] focus:ring-1 focus:ring-[#15803D]"
             />
           </div>
@@ -602,13 +613,13 @@ export const PackEditorPage: React.FC = () => {
         {/* PREREQUISITE ALERT NOTE */}
         <div className="pt-2 border-t border-slate-100">
           <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Prerequisite Note (Yellow Banner Text)
+            {t("packs.editor.field.prerequisiteNote")}
           </label>
           <input
             type="text"
             value={prerequisiteNote}
             onChange={(e) => setPrerequisiteNote(e.target.value)}
-            placeholder="e.g. Advanced Reporting requires intelligence platform module ready state."
+            placeholder={t("packs.editor.placeholder.prerequisiteNote")}
             className="w-full px-3.5 py-2.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-hidden focus:border-[#15803D] focus:ring-1 focus:ring-[#15803D]"
           />
         </div>

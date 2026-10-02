@@ -19,6 +19,7 @@ import { DashboardLayout } from "../layouts/DashboardLayout";
 import { ProtectedRoute } from "../components/common/ProtectedRoute";
 
 import { PermissionRoute } from "../components/common/PermissionRoute";
+import { SettingsPage } from "../pages/SettingsPage";
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -43,11 +44,17 @@ export const AppRoutes: React.FC = () => {
           {/* User Account / My Profile (matches screenshot 2 dropdown destination) */}
           <Route path="/profile" element={<ProfilePage />} />
 
+          {/* Settings (Language) — available to every signed-in user */}
+          <Route path="/settings" element={<SettingsPage />} />
+
           {/* Access Control: Users Management (System Accounts) */}
           <Route
             path="/users"
             element={
-              <PermissionRoute featureId="feat_users_mgmt" featureName="Users Management">
+              <PermissionRoute
+                featureId="feat_users_mgmt"
+                featureNameKey="nav.feature.usersManagement"
+              >
                 <UsersManagementPage />
               </PermissionRoute>
             }
@@ -55,7 +62,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/access-control"
             element={
-              <PermissionRoute featureId="feat_users_mgmt" featureName="Users Management">
+              <PermissionRoute
+                featureId="feat_users_mgmt"
+                featureNameKey="nav.feature.usersManagement"
+              >
                 <UsersManagementPage />
               </PermissionRoute>
             }
@@ -63,7 +73,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/access-control/users"
             element={
-              <PermissionRoute featureId="feat_users_mgmt" featureName="Users Management">
+              <PermissionRoute
+                featureId="feat_users_mgmt"
+                featureNameKey="nav.feature.usersManagement"
+              >
                 <UsersManagementPage />
               </PermissionRoute>
             }
@@ -73,7 +86,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/access-control/policies"
             element={
-              <PermissionRoute featureId="feat_roles_templates" featureName="Security Policies">
+              <PermissionRoute
+                featureId="feat_roles_templates"
+                featureNameKey="nav.feature.securityPolicies"
+              >
                 <RolesPermissionsPage />
               </PermissionRoute>
             }
@@ -81,7 +97,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/policies"
             element={
-              <PermissionRoute featureId="feat_roles_templates" featureName="Security Policies">
+              <PermissionRoute
+                featureId="feat_roles_templates"
+                featureNameKey="nav.feature.securityPolicies"
+              >
                 <RolesPermissionsPage />
               </PermissionRoute>
             }
@@ -89,7 +108,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/security-policies"
             element={
-              <PermissionRoute featureId="feat_roles_templates" featureName="Security Policies">
+              <PermissionRoute
+                featureId="feat_roles_templates"
+                featureNameKey="nav.feature.securityPolicies"
+              >
                 <RolesPermissionsPage />
               </PermissionRoute>
             }
@@ -99,7 +121,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/access-control/roles"
             element={
-              <PermissionRoute featureId="feat_roles_templates" featureName="Roles & Permissions">
+              <PermissionRoute
+                featureId="feat_roles_templates"
+                featureNameKey="nav.feature.rolesPermissions"
+              >
                 <RolesPermissionsPage />
               </PermissionRoute>
             }
@@ -107,7 +132,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/roles"
             element={
-              <PermissionRoute featureId="feat_roles_templates" featureName="Roles & Permissions">
+              <PermissionRoute
+                featureId="feat_roles_templates"
+                featureNameKey="nav.feature.rolesPermissions"
+              >
                 <RolesPermissionsPage />
               </PermissionRoute>
             }
@@ -115,7 +143,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/roles-permissions"
             element={
-              <PermissionRoute featureId="feat_roles_templates" featureName="Roles & Permissions">
+              <PermissionRoute
+                featureId="feat_roles_templates"
+                featureNameKey="nav.feature.rolesPermissions"
+              >
                 <RolesPermissionsPage />
               </PermissionRoute>
             }
@@ -123,7 +154,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/security-templates"
             element={
-              <PermissionRoute featureId="feat_roles_templates" featureName="Roles & Permissions">
+              <PermissionRoute
+                featureId="feat_roles_templates"
+                featureNameKey="nav.feature.rolesPermissions"
+              >
                 <RolesPermissionsPage />
               </PermissionRoute>
             }
@@ -131,7 +165,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/access-control/audit-logs"
             element={
-              <PermissionRoute featureId="feat_audit_compliance" featureName="Audit Logs">
+              <PermissionRoute
+                featureId="feat_audit_compliance"
+                featureNameKey="nav.feature.auditLogs"
+              >
                 <DomainPlaceholderPage />
               </PermissionRoute>
             }
@@ -141,7 +178,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/organizations/360"
             element={
-              <PermissionRoute featureId="feat_org_360" featureName="Organization 360">
+              <PermissionRoute
+                featureId="feat_org_360"
+                featureNameKey="nav.feature.organization360"
+              >
                 <Organization360Page />
               </PermissionRoute>
             }
@@ -158,7 +198,7 @@ export const AppRoutes: React.FC = () => {
                   { featureId: "feat_partner_docs" },
                   { featureId: "feat_org_360" },
                 ]}
-                featureName="Partner Detail"
+                featureNameKey="nav.feature.partnerDetail"
               >
                 <PartnerDetailPage />
               </PermissionRoute>
@@ -175,7 +215,7 @@ export const AppRoutes: React.FC = () => {
                   { featureId: "feat_partner_docs" },
                   { featureId: "feat_org_360" },
                 ]}
-                featureName="Partner Detail"
+                featureNameKey="nav.feature.partnerDetail"
               >
                 <PartnerDetailPage />
               </PermissionRoute>
@@ -192,7 +232,7 @@ export const AppRoutes: React.FC = () => {
                   { featureId: "feat_partner_docs" },
                   { featureId: "feat_org_360" },
                 ]}
-                featureName="Partner Detail"
+                featureNameKey="nav.feature.partnerDetail"
               >
                 <PartnerDetailPage />
               </PermissionRoute>
@@ -209,7 +249,7 @@ export const AppRoutes: React.FC = () => {
                   { featureId: "feat_partner_docs" },
                   { featureId: "feat_org_360" },
                 ]}
-                featureName="Partner Detail"
+                featureNameKey="nav.feature.partnerDetail"
               >
                 <PartnerDetailPage />
               </PermissionRoute>
@@ -226,7 +266,7 @@ export const AppRoutes: React.FC = () => {
                   { featureId: "feat_partner_docs" },
                   { featureId: "feat_org_360" },
                 ]}
-                featureName="Partner Detail"
+                featureNameKey="nav.feature.partnerDetail"
               >
                 <PartnerDetailPage />
               </PermissionRoute>
@@ -243,7 +283,7 @@ export const AppRoutes: React.FC = () => {
                   { featureId: "feat_partner_docs" },
                   { featureId: "feat_org_360" },
                 ]}
-                featureName="Partner Detail"
+                featureNameKey="nav.feature.partnerDetail"
               >
                 <PartnerDetailPage />
               </PermissionRoute>
@@ -260,7 +300,7 @@ export const AppRoutes: React.FC = () => {
                   { featureId: "feat_partner_docs" },
                   { featureId: "feat_org_360" },
                 ]}
-                featureName="Partner Detail"
+                featureNameKey="nav.feature.partnerDetail"
               >
                 <PartnerDetailPage />
               </PermissionRoute>
@@ -277,7 +317,7 @@ export const AppRoutes: React.FC = () => {
                   { featureId: "feat_partner_docs" },
                   { featureId: "feat_org_360" },
                 ]}
-                featureName="Partner Detail"
+                featureNameKey="nav.feature.partnerDetail"
               >
                 <PartnerDetailPage />
               </PermissionRoute>
@@ -294,7 +334,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/commercials"
             element={
-              <PermissionRoute featureId="feat_commercial_plans" featureName="Commercial Plans">
+              <PermissionRoute
+                featureId="feat_commercial_plans"
+                featureNameKey="nav.feature.commercialPlans"
+              >
                 <CommercialPlansPage />
               </PermissionRoute>
             }
@@ -302,7 +345,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/commercials/plans"
             element={
-              <PermissionRoute featureId="feat_commercial_plans" featureName="Commercial Plans">
+              <PermissionRoute
+                featureId="feat_commercial_plans"
+                featureNameKey="nav.feature.commercialPlans"
+              >
                 <CommercialPlansPage />
               </PermissionRoute>
             }
@@ -310,7 +356,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/commercials/modules"
             element={
-              <PermissionRoute featureId="feat_commercial_plans" featureName="Platform Modules">
+              <PermissionRoute
+                featureId="feat_commercial_plans"
+                featureNameKey="nav.feature.platformModules"
+              >
                 <PlatformModulesPage />
               </PermissionRoute>
             }
@@ -318,7 +367,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/commercials/packs"
             element={
-              <PermissionRoute featureId="feat_commercial_packs" featureName="Commercial Packs">
+              <PermissionRoute
+                featureId="feat_commercial_packs"
+                featureNameKey="nav.feature.commercialPacks"
+              >
                 <CommercialPacksPage />
               </PermissionRoute>
             }
@@ -329,7 +381,7 @@ export const AppRoutes: React.FC = () => {
               <PermissionRoute
                 featureId="feat_commercial_packs"
                 actionKey="create_pack"
-                featureName="Create Feature Pack"
+                featureNameKey="nav.feature.createPack"
               >
                 <PackEditorPage />
               </PermissionRoute>
@@ -341,7 +393,7 @@ export const AppRoutes: React.FC = () => {
               <PermissionRoute
                 featureId="feat_commercial_packs"
                 actionKey="edit_pack"
-                featureName="Edit Feature Pack"
+                featureNameKey="nav.feature.editPack"
               >
                 <PackEditorPage />
               </PermissionRoute>
@@ -350,7 +402,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/commercials/packs/:id"
             element={
-              <PermissionRoute featureId="feat_commercial_packs" featureName="Commercial Packs">
+              <PermissionRoute
+                featureId="feat_commercial_packs"
+                featureNameKey="nav.feature.commercialPacks"
+              >
                 <PackEditorPage />
               </PermissionRoute>
             }
@@ -359,7 +414,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/commercials/add-ons"
             element={
-              <PermissionRoute featureId="feat_commercial_addons" featureName="Commercial Add-ons">
+              <PermissionRoute
+                featureId="feat_commercial_addons"
+                featureNameKey="nav.feature.commercialAddons"
+              >
                 <CommercialAddonsPage />
               </PermissionRoute>
             }
@@ -370,7 +428,7 @@ export const AppRoutes: React.FC = () => {
               <PermissionRoute
                 featureId="feat_commercial_addons"
                 actionKey="create_addon"
-                featureName="Create Add-on Option"
+                featureNameKey="nav.feature.createAddon"
               >
                 <AddonEditorPage />
               </PermissionRoute>
@@ -382,7 +440,7 @@ export const AppRoutes: React.FC = () => {
               <PermissionRoute
                 featureId="feat_commercial_addons"
                 actionKey="edit_addon"
-                featureName="Edit Commercial Add-on"
+                featureNameKey="nav.feature.editAddon"
               >
                 <AddonEditorPage />
               </PermissionRoute>
@@ -391,7 +449,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/commercials/add-ons/:id"
             element={
-              <PermissionRoute featureId="feat_commercial_addons" featureName="Commercial Add-ons">
+              <PermissionRoute
+                featureId="feat_commercial_addons"
+                featureNameKey="nav.feature.commercialAddons"
+              >
                 <AddonEditorPage />
               </PermissionRoute>
             }
@@ -402,7 +463,7 @@ export const AppRoutes: React.FC = () => {
               <PermissionRoute
                 featureId="feat_commercial_plans"
                 actionKey="create_plan"
-                featureName="Create Plan"
+                featureNameKey="nav.feature.createPlan"
               >
                 <PlanEditorPage />
               </PermissionRoute>
@@ -414,7 +475,7 @@ export const AppRoutes: React.FC = () => {
               <PermissionRoute
                 featureId="feat_commercial_plans"
                 actionKey="edit_plan"
-                featureName="Edit Plan"
+                featureNameKey="nav.feature.editPlan"
               >
                 <PlanEditorPage />
               </PermissionRoute>
@@ -423,7 +484,10 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/commercials/plans/:planId"
             element={
-              <PermissionRoute featureId="feat_commercial_plans" featureName="Commercial Plans">
+              <PermissionRoute
+                featureId="feat_commercial_plans"
+                featureNameKey="nav.feature.commercialPlans"
+              >
                 <PlanEditorPage />
               </PermissionRoute>
             }

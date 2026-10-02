@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../hooks/use-auth";
 import { usePermissions } from "../hooks/use-permissions";
 import { userApi } from "../api";
 import { roleApi, SecurityRole } from "../api/role.api";
 import { User, Pagination } from "../@types";
+import { useFormat } from "../i18n/useFormat";
+import { statusLabel, toCode } from "../i18n/labels";
+import { localizeError } from "../i18n/errors";
 import {
   Search,
   ChevronDown,
@@ -20,6 +24,15 @@ import {
 export const UsersManagementPage: React.FC = () => {
   const { user: currentAuthUser } = useAuth();
   const { can } = usePermissions();
+  const { t, i18n } = useTranslation();
+  const f = useFormat();
+
+  // Role scopes come from the API as words ("One organization"); show known ones in the user's
+  // language and anything else exactly as the server sent it.
+  const scopeLabel = (raw: string) => {
+    const key = `users.roleScope.${toCode(raw)}`;
+    return i18n.exists(key) ? t(key) : raw;
+  };
 
   // State
   const [users, setUsers] = useState<User[]>([]);
@@ -139,14 +152,14 @@ export const UsersManagementPage: React.FC = () => {
         status: modalForm.status,
       });
 
-      setFeedbackMessage("Account details and security role updated!");
+      setFeedbackMessage(t("users.edit.updated"));
       setTimeout(() => {
         setFeedbackMessage(null);
         handleCloseModal();
         loadUsers();
       }, 700);
     } catch (err: any) {
-      alert(`Update failed: ${err.message}`);
+      alert(t("users.alerts.updateFailed", { message: localizeError(err) }));
     } finally {
       setSaving(false);
     }
@@ -156,10 +169,10 @@ export const UsersManagementPage: React.FC = () => {
   const handleDeleteAccount = async () => {
     if (!editingUser) return;
     if (editingUser.id === currentAuthUser?.id) {
-      alert("You cannot delete your own active session account.");
+      alert(t("users.alerts.cannotDeleteSelf"));
       return;
     }
-    if (!window.confirm(`Are you sure you want to delete ${editingUser.email}?`)) {
+    if (!window.confirm(t("users.alerts.confirmDelete", { email: editingUser.email }))) {
       return;
     }
 
@@ -168,7 +181,7 @@ export const UsersManagementPage: React.FC = () => {
       handleCloseModal();
       loadUsers();
     } catch (err: any) {
-      alert(`Delete failed: ${err.message}`);
+      alert(t("users.alerts.deleteFailed", { message: localizeError(err) }));
     }
   };
 
@@ -191,7 +204,7 @@ export const UsersManagementPage: React.FC = () => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            placeholder="Search name, email, mobile, role..."
+            placeholder={t("users.search.placeholder")}
             className="w-full pl-10 pr-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:border-[#65D000] focus:ring-1 focus:ring-[#65D000]/20 transition-all outline-none placeholder:text-slate-400 shadow-2xs"
           />
         </div>
@@ -206,7 +219,7 @@ export const UsersManagementPage: React.FC = () => {
             }}
             className="appearance-none bg-white border border-slate-200 rounded-xl px-4 py-2 pr-9 text-xs text-slate-700 font-medium focus:border-[#65D000] outline-none shadow-2xs cursor-pointer"
           >
-            <option value="All Security Roles">All Security Roles</option>
+            <option value="All Security Roles">{t("users.filter.allRoles")}</option>
             {availableRoles.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
@@ -226,9 +239,9 @@ export const UsersManagementPage: React.FC = () => {
             }}
             className="appearance-none bg-white border border-slate-200 rounded-xl px-4 py-2 pr-9 text-xs text-slate-700 font-medium focus:border-[#65D000] outline-none shadow-2xs cursor-pointer"
           >
-            <option value="All Statuses">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
+            <option value="All Statuses">{t("users.filter.allStatuses")}</option>
+            <option value="Active">{statusLabel(t, "Active")}</option>
+            <option value="Inactive">{statusLabel(t, "Inactive")}</option>
           </select>
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
         </div>
@@ -238,7 +251,7 @@ export const UsersManagementPage: React.FC = () => {
           onClick={loadUsers}
           disabled={loading}
           className="p-2 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
-          title="Refresh database"
+          title={t("users.refreshTitle")}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
         </button>
@@ -251,22 +264,22 @@ export const UsersManagementPage: React.FC = () => {
         {/* Card Header: Title & Subtitle */}
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h1 className="text-base font-bold text-slate-900 leading-snug">System Accounts</h1>
-            <p className="text-xs text-slate-400 mt-0.5">
-              System accounts authenticated via security policies and granular permissions.
-            </p>
+            <h1 className="text-base font-bold text-slate-900 leading-snug">
+              {t("users.list.title")}
+            </h1>
+            <p className="text-xs text-slate-400 mt-0.5">{t("users.list.subtitle")}</p>
           </div>
         </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#FAFBFB] text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-100 font-bold">
+            <thead className="bg-[#FAFBFB] text-slate-500 uppercase text-[10px] tracking-wider [&:lang(hi)]:tracking-normal border-b border-slate-100 font-bold">
               <tr>
-                <th className="px-6 py-3.5">EMAIL</th>
-                <th className="px-6 py-3.5">SECURITY ROLE</th>
-                <th className="px-6 py-3.5">MOBILE</th>
-                <th className="px-6 py-3.5">STATUS</th>
+                <th className="px-6 py-3.5">{t("users.table.email")}</th>
+                <th className="px-6 py-3.5">{t("users.table.securityRole")}</th>
+                <th className="px-6 py-3.5">{t("users.table.mobile")}</th>
+                <th className="px-6 py-3.5">{t("users.table.status")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -275,14 +288,14 @@ export const UsersManagementPage: React.FC = () => {
                   <td colSpan={4} className="px-6 py-10 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#65D000] border-t-transparent" />
-                      <span>Loading database users...</span>
+                      <span>{t("users.table.loading")}</span>
                     </div>
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-10 text-center text-slate-400">
-                    No matching accounts found in database.
+                    {t("users.table.empty")}
                   </td>
                 </tr>
               ) : (
@@ -291,18 +304,22 @@ export const UsersManagementPage: React.FC = () => {
                   const roleDisplayName =
                     item.role_details?.name ||
                     item.role_name ||
-                    (item.role_id ? "Assigned Role" : "No Role Assigned");
-                  const roleScope =
-                    item.role_details?.scope ||
-                    item.role_scope ||
-                    (item.role_id ? "Active Policy" : "Unassigned");
+                    (item.role_id
+                      ? t("users.table.assignedRole")
+                      : t("users.table.noRoleAssigned"));
+                  const rawRoleScope = item.role_details?.scope || item.role_scope;
+                  const roleScope = rawRoleScope
+                    ? scopeLabel(rawRoleScope)
+                    : item.role_id
+                      ? t("users.table.activePolicy")
+                      : t("users.table.unassigned");
 
                   return (
                     <tr
                       key={item.id}
                       onClick={canEdit ? () => handleOpenEditModal(item) : undefined}
                       className={`hover:bg-slate-50/70 transition-colors ${canEdit ? "cursor-pointer" : ""}`}
-                      title={canEdit ? "Click row to edit account details" : undefined}
+                      title={canEdit ? t("users.table.editRowTitle") : undefined}
                     >
                       {/* EMAIL Column */}
                       <td className="px-6 py-4 font-bold text-slate-900 text-xs sm:text-sm">
@@ -332,7 +349,7 @@ export const UsersManagementPage: React.FC = () => {
                               : "bg-slate-100 text-slate-500"
                           }`}
                         >
-                          {item.status || "Active"}
+                          {statusLabel(t, item.status || "Active")}
                         </span>
                       </td>
                     </tr>
@@ -346,8 +363,11 @@ export const UsersManagementPage: React.FC = () => {
         {/* Card Footer: Results Count + Pagination */}
         <div className="p-4 sm:p-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
           <div>
-            Showing {pagination.total === 0 ? 0 : startIndex}-{endIndex} of {pagination.total}{" "}
-            results
+            {t("users.results", {
+              from: f.number(pagination.total === 0 ? 0 : startIndex),
+              to: f.number(endIndex),
+              total: f.number(pagination.total),
+            })}
           </div>
 
           {/* Pagination Box */}
@@ -371,7 +391,7 @@ export const UsersManagementPage: React.FC = () => {
                     : "text-slate-400 hover:text-slate-700"
                 }`}
               >
-                {pageNum}
+                {f.number(pageNum)}
               </button>
             ))}
 
@@ -395,10 +415,8 @@ export const UsersManagementPage: React.FC = () => {
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div>
-                <h2 className="text-base font-bold text-slate-900">Edit System Account</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Update administrator details, security role assignment, and access status.
-                </p>
+                <h2 className="text-base font-bold text-slate-900">{t("users.edit.title")}</h2>
+                <p className="text-xs text-slate-400 mt-0.5">{t("users.edit.subtitle")}</p>
               </div>
 
               <button
@@ -423,7 +441,7 @@ export const UsersManagementPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    First Name
+                    {t("users.form.firstName")}
                   </label>
                   <input
                     type="text"
@@ -431,7 +449,7 @@ export const UsersManagementPage: React.FC = () => {
                     onChange={(e) =>
                       setModalForm((prev) => ({ ...prev, first_name: e.target.value }))
                     }
-                    placeholder="First Name"
+                    placeholder={t("users.form.firstName")}
                     required
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-[#65D000] focus:ring-1 focus:ring-[#65D000]/20 transition-all outline-none"
                   />
@@ -439,7 +457,7 @@ export const UsersManagementPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Last Name
+                    {t("users.form.lastName")}
                   </label>
                   <input
                     type="text"
@@ -447,7 +465,7 @@ export const UsersManagementPage: React.FC = () => {
                     onChange={(e) =>
                       setModalForm((prev) => ({ ...prev, last_name: e.target.value }))
                     }
-                    placeholder="Last Name"
+                    placeholder={t("users.form.lastName")}
                     required
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-[#65D000] focus:ring-1 focus:ring-[#65D000]/20 transition-all outline-none"
                   />
@@ -457,7 +475,7 @@ export const UsersManagementPage: React.FC = () => {
               {/* Email Address */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Email Address
+                  {t("users.form.emailAddress")}
                 </label>
                 <input
                   type="email"
@@ -471,7 +489,7 @@ export const UsersManagementPage: React.FC = () => {
               {/* Mobile Number */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Mobile Number
+                  {t("users.form.mobileNumber")}
                 </label>
                 <input
                   type="tel"
@@ -488,17 +506,17 @@ export const UsersManagementPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Security Role
+                    {t("users.form.securityRole")}
                   </label>
                   <select
                     value={modalForm.role_id}
                     onChange={(e) => setModalForm((prev) => ({ ...prev, role_id: e.target.value }))}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:border-[#65D000] outline-none cursor-pointer"
                   >
-                    <option value="">No Role Assigned (Restricted)</option>
+                    <option value="">{t("users.form.noRoleOption")}</option>
                     {availableRoles.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.name} ({r.scope})
+                        {t("users.form.roleOption", { name: r.name, scope: scopeLabel(r.scope) })}
                       </option>
                     ))}
                   </select>
@@ -506,7 +524,7 @@ export const UsersManagementPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Status
+                    {t("common.status")}
                   </label>
                   <select
                     value={modalForm.status}
@@ -518,8 +536,8 @@ export const UsersManagementPage: React.FC = () => {
                     }
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:border-[#65D000] outline-none cursor-pointer"
                   >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
+                    <option value="Active">{statusLabel(t, "Active")}</option>
+                    <option value="Inactive">{statusLabel(t, "Inactive")}</option>
                   </select>
                 </div>
               </div>
@@ -534,7 +552,7 @@ export const UsersManagementPage: React.FC = () => {
                       className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>Delete User</span>
+                      <span>{t("users.edit.deleteUser")}</span>
                     </button>
                   )}
                 </div>
@@ -545,7 +563,7 @@ export const UsersManagementPage: React.FC = () => {
                     onClick={handleCloseModal}
                     className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
 
                   {can("feat_users_mgmt", "edit_user") && (
@@ -555,7 +573,7 @@ export const UsersManagementPage: React.FC = () => {
                       className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#65D000] hover:bg-[#58b800] text-white font-semibold text-xs rounded-xl transition-all shadow-xs cursor-pointer disabled:opacity-60"
                     >
                       <Save className="w-3.5 h-3.5" />
-                      <span>{saving ? "Saving..." : "Save Changes"}</span>
+                      <span>{saving ? t("common.saving") : t("users.edit.saveChanges")}</span>
                     </button>
                   )}
                 </div>

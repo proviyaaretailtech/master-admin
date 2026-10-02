@@ -1,0 +1,1513 @@
+{
+  "common": {
+    "appName": "Proviyaa Master Admin",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "create": "Create",
+    "update": "Update",
+    "view": "View",
+    "search": "Search",
+    "searchPlaceholder": "Search...",
+    "filter": "Filter",
+    "clearFilters": "Clear filters",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "done": "Done",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "close": "Close",
+    "retry": "Retry",
+    "reset": "Reset",
+    "apply": "Apply",
+    "remove": "Remove",
+    "publish": "Publish",
+    "retire": "Retire",
+    "duplicate": "Duplicate",
+    "export": "Export",
+    "exportCsv": "Export CSV",
+    "loading": "Loading...",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "all": "All",
+    "none": "None",
+    "unlimited": "Unlimited",
+    "required": "Required",
+    "optional": "Optional",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone number",
+    "address": "Address",
+    "password": "Password",
+    "date": "Date",
+    "time": "Time",
+    "status": "Status",
+    "total": "Total",
+    "amount": "Amount",
+    "quantity": "Quantity",
+    "price": "Price",
+    "notes": "Notes",
+    "reason": "Reason",
+    "description": "Description",
+    "actions": "Actions",
+    "type": "Type",
+    "code": "Code",
+    "version": "Version",
+    "language": "Language",
+    "settings": "Settings",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "help": "Help",
+    "online": "Online",
+    "offline": "Offline",
+    "noInternet": "No internet connection",
+    "somethingWrong": "Something went wrong. Please try again.",
+    "noResults": "No results found.",
+    "perMonth": "per month",
+    "perUnit": "per unit",
+    "dash": "—",
+    "cadence": {
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "annual": "Annual",
+      "yearly": "Yearly",
+      "one_time": "One-time"
+    },
+    "relative": {
+      "justNow": "Just now",
+      "never": "Never",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "todayAt": "Today at {{time}}",
+      "yesterdayAt": "Yesterday at {{time}}",
+      "weekdayAt": "{{weekday}} at {{time}}",
+      "weeksAgo_one": "{{count}} week ago",
+      "weeksAgo_other": "{{count}} weeks ago",
+      "monthsAgo_one": "{{count}} month ago",
+      "monthsAgo_other": "{{count}} months ago",
+      "yearsAgo_one": "{{count}} year ago",
+      "yearsAgo_other": "{{count}} years ago"
+    },
+    "unassigned": "Unassigned"
+  },
+  "status": {
+    "draft": "Draft",
+    "published": "Published",
+    "retired": "Retired",
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "suspended": "Suspended",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "onboarding": "Onboarding",
+    "custom": "Custom",
+    "legacy": "Legacy",
+    "online_ready": "Online Ready",
+    "draft_mode": "Draft Mode",
+    "under_review": "Under Review"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Cannot reach the server. Please check your internet connection and try again.",
+    "validation": "Some of the information you entered is not valid.",
+    "validationWithDetails": "Please correct the following: {{details}}",
+    "code": {
+      "AUTH_EMAIL_ALREADY_EXISTS": "This email address is already registered.",
+      "AUTH_INVALID_TOKEN": "Your session is not valid. Please sign in again.",
+      "AUTH_USER_NOT_FOUND": "We could not find this user.",
+      "AUTH_NOT_FOUND": "We could not find this account.",
+      "AUTH_TOO_MANY_ATTEMPTS": "Too many attempts. Please wait a few minutes and try again.",
+      "AUTH_UNAUTHORIZED_ACCESS": "You are not signed in, or your session has expired. Please sign in again.",
+      "AUTH_TOKEN_NOT_FOUND": "Your session could not be found. Please sign in again.",
+      "ACCESS_UNAUTHORIZED": "You do not have permission to do this.",
+      "VALIDATION_ERROR": "Some of the information you entered is not valid.",
+      "RESOURCE_NOT_FOUND": "We could not find what you were looking for.",
+      "INTERNAL_SERVER_ERROR": "The server ran into a problem. Please try again in a moment.",
+      "PAYLOAD_TOO_LARGE": "The data you sent is too large."
+    },
+    "status": {
+      "400": "The request was not valid.",
+      "401": "Please sign in again.",
+      "403": "You do not have permission to do this.",
+      "404": "We could not find what you were looking for.",
+      "409": "This conflicts with information that already exists.",
+      "413": "The data you sent is too large.",
+      "422": "Some of the information you entered is not valid.",
+      "429": "Too many requests. Please wait a moment and try again.",
+      "500": "The server ran into a problem. Please try again in a moment.",
+      "502": "The server is temporarily unavailable. Please try again shortly.",
+      "503": "The server is temporarily unavailable. Please try again shortly.",
+      "504": "The server took too long to respond. Please try again."
+    },
+    "server": {
+      "invalidCredentials": "Invalid email or password. Please check your credentials and try again.",
+      "noControlPlaneAccess": "This account does not have access to the Master Admin panel.",
+      "accountDeactivated": "This user account has been deactivated or suspended.",
+      "notAuthenticated": "You are not signed in. Please sign in and try again.",
+      "sessionExpired": "Your session has expired. Please sign in again.",
+      "orgEmailExists": "An organization with the email {{value}} already exists.",
+      "orgPhoneExists": "An organization with the phone number {{value}} already exists.",
+      "orgEmailInUse": "The email {{value}} is already in use by another organization.",
+      "orgPhoneInUse": "The phone number {{value}} is already in use by another organization.",
+      "orgHasOrders": "This organization has orders or payments and cannot be deleted. Set its status to Inactive instead.",
+      "orgNotFound": "This organization could not be found.",
+      "locationNotFound": "This location could not be found.",
+      "locationCodeExists": "A location with the code {{value}} already exists in this organization.",
+      "locationCodeExistsGeneric": "A location with this code already exists in this organization.",
+      "locationHasOrders": "This location has orders and cannot be deleted. Set its status to Inactive instead.",
+      "planNotFound": "This plan could not be found.",
+      "planCodeExists": "A plan with the code {{value}} already exists.",
+      "planHasSubscriptions": "This plan has active subscriptions and cannot be deleted. Retire it instead.",
+      "planHasHistory": "This plan has subscription history and cannot be deleted. Retire it instead.",
+      "packNotFound": "This pack could not be found.",
+      "packCodeExists": "A pack with the code {{value}} already exists.",
+      "addonNotFound": "This add-on could not be found.",
+      "addonCodeExists": "An add-on with the code {{value}} already exists.",
+      "quantityRange": "Maximum quantity cannot be lower than the minimum quantity.",
+      "moduleNotFound": "This module could not be found.",
+      "moduleKeyExists": "A module with the key {{value}} already exists.",
+      "userNotFound": "This user could not be found.",
+      "roleNotFound": "This role could not be found.",
+      "roleExists": "A role with the same name or key already exists.",
+      "roleInactive": "This role is inactive and cannot be assigned.",
+      "superAdminRoleProtected": "The Super Admin role is protected and cannot be edited.",
+      "cannotEditOwnRole": "You cannot edit your own role.",
+      "cannotDeleteOwnRole": "You cannot delete your own role.",
+      "systemRoleSuperAdminOnly": "Only a Super Administrator can edit a system role.",
+      "systemRoleProtected": "System roles are protected and cannot be deleted.",
+      "cannotDeactivateSelf": "You cannot deactivate or suspend your own account.",
+      "cannotDeleteSelf": "You cannot delete your own account.",
+      "lastSuperAdminDeactivate": "The last active Super Administrator cannot be deactivated.",
+      "lastSuperAdminDelete": "The last active Super Administrator cannot be deleted.",
+      "emailInUse": "This email address is already in use by another user.",
+      "payloadTooLarge": "The data you sent is too large.",
+      "malformedRequest": "The request could not be understood."
+    },
+    "withDetail": "{{summary}} ({{detail}})"
+  },
+  "locations": {
+    "type": {
+      "restaurant": "Restaurant",
+      "cloud_kitchen": "Cloud Kitchen",
+      "delivery_hub": "Delivery Hub",
+      "warehouse": "Warehouse",
+      "retail_outlet": "Retail Outlet",
+      "other": "Other"
+    },
+    "list": {
+      "title": "Location Management",
+      "count_one": "{{num}} Location",
+      "count_other": "{{num}} Locations",
+      "subtitle": "Manage location records, review operational details, and configure store branches.",
+      "searchPlaceholder": "Search locations or codes...",
+      "clearSearch": "Clear search",
+      "addNew": "Add New Location",
+      "loading": "Loading locations...",
+      "noMatch": "No locations found matching \"{{query}}\".",
+      "columnLocation": "Location",
+      "columnCode": "Location Code",
+      "columnTimeZone": "Time Zone",
+      "columnCurrency": "Currency",
+      "columnLastSync": "Last Sync",
+      "columnAction": "Action",
+      "lastSyncedTitle": "Last synchronized: {{time}}",
+      "footerShowing": "Showing {{shown}} of {{total}} operational locations",
+      "footerHint": "Use the modal pattern for adding and configuring location records."
+    },
+    "form": {
+      "addTitle": "Add New Location",
+      "editTitle": "Edit Location",
+      "addSubtitle": "Enter operational details to add a new outlet or facility",
+      "editSubtitle": "Update operational settings for {{name}}",
+      "name": "Location Name *",
+      "namePlaceholder": "e.g. Indiranagar Flagship Outlet",
+      "area": "Area / City Subtitle",
+      "areaPlaceholder": "e.g. Indiranagar, Bengaluru",
+      "code": "Location Code",
+      "codeLocked": "Auto-generated (Locked)",
+      "codeHint": "Auto-generated from business initials and location count.",
+      "type": "Location Type",
+      "timeZone": "Time Zone",
+      "currency": "Currency",
+      "saveChanges": "Save Changes",
+      "createCta": "Create Location"
+    },
+    "delete": {
+      "title": "Delete Location",
+      "confirm": "Are you sure you want to permanently delete location <b>{{name}}</b> ({{code}})?",
+      "cta": "Delete Location"
+    },
+    "toast": {
+      "noPermissionAdd": "You do not have permission to add locations",
+      "noPermissionEdit": "You do not have permission to edit locations",
+      "noPermissionDelete": "You do not have permission to delete locations",
+      "nameRequired": "Location name is required",
+      "deleted": "Location \"{{name}}\" deleted successfully",
+      "updated": "Location updated successfully",
+      "added": "New location added successfully",
+      "deleteFailed": "Failed to delete location",
+      "saveFailed": "Failed to save location"
+    }
+  },
+  "nav": {
+    "brandSub": "MASTER ADMIN PANEL",
+    "overview": "OVERVIEW",
+    "systemDomains": "SYSTEM DOMAINS",
+    "organization": "Organization",
+    "accessControl": "Access Control",
+    "commercials": "Commercials",
+    "backToHome": "Back to Home",
+    "toggleMenu": "Toggle menu",
+    "rolePanel": "{{role}} Panel",
+    "acceptingOnline": "Open / Accepting Online",
+    "closedOffline": "Closed / Offline",
+    "searchPlaceholder": "Order, KOT, bill, table...",
+    "onlineBadge": "ONLINE",
+    "myProfile": "My Profile",
+    "settings": "Settings",
+    "language": "Language",
+    "signOut": "Sign Out",
+    "unassigned": "Unassigned",
+    "closeMenu": "Close menu",
+    "items": {
+      "dashboard": "Dashboard",
+      "organizations": "Organizations",
+      "organization_360": "Organization 360",
+      "brands": "Brands",
+      "locations": "Locations",
+      "departments": "Departments",
+      "employees": "Employees",
+      "invitations": "Invitations",
+      "users": "Users",
+      "roles_permissions": "Roles & Permissions",
+      "security_policies": "Security Policies",
+      "audit_logs": "Audit Logs",
+      "plans": "Plans",
+      "packs": "Packs",
+      "add_ons": "Add-ons",
+      "subscriptions": "Subscriptions",
+      "entitlements": "Entitlements",
+      "usage": "Usage",
+      "billing": "Billing",
+      "platform_core": "Platform Core",
+      "commerce_engine": "Commerce Engine",
+      "inventory_supply": "Inventory Supply",
+      "fulfilment": "Fulfilment",
+      "intelligence": "Intelligence",
+      "operations": "Operations",
+      "support": "Support",
+      "developer": "Developer",
+      "audit": "Audit"
+    },
+    "feature": {
+      "usersManagement": "Users Management",
+      "securityPolicies": "Security Policies",
+      "rolesPermissions": "Roles & Permissions",
+      "auditLogs": "Audit Logs",
+      "organization360": "Organization 360",
+      "partnerDetail": "Partner Detail",
+      "commercialPlans": "Commercial Plans",
+      "platformModules": "Platform Modules",
+      "commercialPacks": "Commercial Packs",
+      "createPack": "Create Feature Pack",
+      "editPack": "Edit Feature Pack",
+      "commercialAddons": "Commercial Add-ons",
+      "createAddon": "Create Add-on Option",
+      "editAddon": "Edit Commercial Add-on",
+      "createPlan": "Create Plan",
+      "editPlan": "Edit Plan"
+    },
+    "placeholder": {
+      "eyebrow": "SYSTEM DOMAIN MODULE",
+      "defaultName": "System Domain",
+      "description": "This system module is configured in the Proviyaa Master Admin architecture and will be populated with operational widgets.",
+      "workspace": "{{name}} Workspace",
+      "ready": "Ready for data models, API integrations, and specialized store controls.",
+      "returnToPipeline": "Return to Onboarding Pipeline"
+    }
+  },
+  "auth": {
+    "title": "Super Admin",
+    "emailLabel": "Email Address",
+    "passwordLabel": "Password",
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordNotice": "Password reset link will be sent to your email address.",
+    "attemptsRemaining_one": "Incorrect password. {{count}} attempt remaining.",
+    "attemptsRemaining_other": "Incorrect password. {{count}} attempts remaining.",
+    "signingIn": "Signing In...",
+    "signIn": "Sign In",
+    "invitationOnly": "Access is by invitation from a platform administrator.",
+    "invalidCredentials": "Invalid email or password. Please check your credentials and try again.",
+    "unexpected": "An unexpected error occurred. Please try again.",
+    "denied": {
+      "title": "Access Restricted",
+      "withFeature": "Your current role ({{role}}) does not have sufficient permissions to view {{feature}}.",
+      "generic": "Your current role ({{role}}) does not grant access to this page or feature.",
+      "contactAdmin": "Please contact your master administrator to adjust your security role.",
+      "goDashboard": "Go to Dashboard",
+      "goBack": "Go Back"
+    }
+  },
+  "settings": {
+    "eyebrow": "SETTINGS",
+    "title": "Settings",
+    "subtitle": "Choose your language and display preferences.",
+    "language": {
+      "title": "Language",
+      "description": "Choose the language used across the Master Admin panel. The change applies instantly.",
+      "loading": "Loading {{language}}...",
+      "failed": "Could not load {{language}}. You are still using {{current}}.",
+      "timeout": "Loading {{language}} is taking too long. You are still using {{current}}.",
+      "changed": "Language changed to {{language}}",
+      "devanagariDigits": "Use Devanagari digits",
+      "devanagariDigitsHint": "Numbers will look like {{example}}. Available only in Hindi."
+    },
+    "profile": {
+      "eyebrow": "ACCOUNT MANAGEMENT",
+      "title": "Super Admin Profile",
+      "intro": "View your store administrator credentials, manage your personal contact details, and inspect system access.",
+      "superAdminBadge": "Super Admin",
+      "supabaseConnected": "Supabase Connected",
+      "notAvailable": "N/A",
+      "memberSinceFallback": "September 2026",
+      "personal": {
+        "title": "Personal Information",
+        "subtitle": "Update your administrative profile details and phone contact."
+      },
+      "form": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "emailAddress": "Email Address",
+        "verifiedIdentity": "Verified Identity",
+        "emailHint": "Primary email associated with your Super Admin account.",
+        "phoneNumber": "Phone Number",
+        "saveChanges": "Save Changes",
+        "savingChanges": "Saving Changes..."
+      },
+      "access": {
+        "title": "System Access",
+        "systemRole": "System Role",
+        "systemRoleValue": "OneLatur Super Administrator",
+        "accountId": "Account ID (UUID)",
+        "authMechanism": "Authentication Mechanism",
+        "authMechanismValue": "Custom JWT (HMAC-SHA256)",
+        "accountCreated": "Account Created",
+        "signOut": "Sign Out of Admin Panel"
+      },
+      "messages": {
+        "firstNameTooShort": "First name must be at least 2 characters long.",
+        "lastNameRequired": "Last name is required.",
+        "saved": "Profile information updated successfully!",
+        "saveFailed": "Failed to update profile. Please try again."
+      }
+    }
+  },
+  "addons": {
+    "pricePerUnit": "{{price}} / {{unit}}",
+    "unit": "unit",
+    "unitPlural": "{{unit}}s",
+    "allTiers": "All platform tiers",
+    "dismiss": "Dismiss",
+    "sync": {
+      "success": "Success",
+      "pending": "Pending",
+      "in_progress": "In progress",
+      "failed": "Failed",
+      "error": "Error"
+    },
+    "entitlement": {
+      "passed": "Passed",
+      "pending": "Pending",
+      "failed": "Failed"
+    },
+    "tax": {
+      "passed": "Passed",
+      "verified": "Verified",
+      "pending_verification": "Pending verification",
+      "failed": "Failed",
+      "not_applicable": "Not applicable"
+    },
+    "list": {
+      "breadcrumbMaster": "Master",
+      "breadcrumbCommercials": "Commercials",
+      "breadcrumbAddons": "Add-ons",
+      "title": "SaaS Optional Add-ons",
+      "create": "Create Add-on Option",
+      "filters": "Filters",
+      "categoryLabel": "Category:",
+      "allCategories": "All Commercial Categories",
+      "loadingTitle": "Loading SaaS optional add-ons...",
+      "loadingHint": "Connecting to commercial database",
+      "emptyTitle": "No commercial add-ons found",
+      "emptyForCategory": "No add-on options found under category \"{{category}}\".",
+      "emptyHint": "Get started by creating your first SaaS add-on option for platform plans.",
+      "colName": "ADD-ON NAME",
+      "colCategory": "CATEGORY",
+      "colCompatibility": "COMPATIBILITY",
+      "colPrice": "UNIT PRICE & QUANTITY",
+      "colStatus": "STATUS",
+      "colAssignments": "ACTIVE ASSIGNMENTS",
+      "colActions": "ACTIONS",
+      "idPrefix": "ID: {{code}}",
+      "editDraft": "Edit Draft",
+      "activeUnits": "{{number}} {{unit}} active",
+      "noActive": "0 active accounts",
+      "errors": {
+        "loadFailed": "Failed to load commercial add-ons",
+        "publishFailed": "Failed to publish commercial add-on",
+        "retireFailed": "Failed to retire commercial add-on"
+      }
+    },
+    "dialog": {
+      "addonName": "Add-on Name:",
+      "addonId": "Add-on ID:",
+      "unitPrice": "Unit Price:",
+      "compatibility": "Compatibility:",
+      "compatiblePlans": "Compatible Plans:",
+      "activeAssignments": "Active Assignments:",
+      "publish": {
+        "title": "Publish Commercial Add-on",
+        "catalogHint": "Publish this add-on into the active catalog for tenant provisioning.",
+        "catalogNote": "Once published, tenant organizations with compatible base plans will be able to provision this add-on.",
+        "productionHint": "Publish this add-on into active production for compatible parent plans.",
+        "confirmText": "Are you sure you want to publish <strong>\"{{name}}\"</strong>? Tenant organizations with compatible platform plans will immediately be able to purchase and provision this add-on.",
+        "confirm": "Confirm & Publish",
+        "publishing": "Publishing..."
+      },
+      "retire": {
+        "title": "Retire Commercial Add-on",
+        "hint": "Archive this add-on from new purchases while preserving existing clients.",
+        "confirmText": "Are you sure you want to retire <strong>\"{{name}}\"</strong>? Existing tenant organizations will retain their current active allocations, but no new purchases will be permitted.",
+        "confirm": "Confirm & Retire",
+        "retiring": "Retiring..."
+      },
+      "discard": {
+        "title": "Discard Draft Changes?",
+        "hint": "Any unsaved modifications to this commercial add-on will be discarded.",
+        "confirmText": "Are you sure you want to discard your draft? This action cannot be undone.",
+        "keepEditing": "Continue Editing",
+        "confirm": "Discard & Exit"
+      }
+    },
+    "editor": {
+      "loading": "Loading Add-on Editor...",
+      "title": "Add-on Editor",
+      "titleWithName": "{{name}} Location Editor",
+      "discardDraft": "Discard Draft",
+      "saveProgress": "Save Progress",
+      "publishAddon": "Publish Add-on",
+      "cadenceWarning": "<strong>Warning:</strong> Modifying CADENCE to \"{{cadence}}\" will auto-retire the legacy \"{{pack}}\" pack active for {{clients}} clients.",
+      "metadataTitle": "Add-on Metadata & Description",
+      "pricingTitle": "Pricing & Quantity Controls",
+      "compatTitle": "Platform Plan Compatibility",
+      "compatHint": "Define which parent plans this add-on can be provisioned into.",
+      "noPlans": "No published plans available. Only published platform plans can be configured for add-on compatibility.",
+      "compatible": "Fully Compatible",
+      "incompatible": "Incompatible (Base Limit Lock)",
+      "validationTitle": "System Integration Validation",
+      "billingSyncCheck": "Billing Engine sync check:",
+      "entitlementCheck": "Entitlement schema structure validation:",
+      "taxCheck": "Tax compliance registration status:",
+      "labelName": "ADD-ON DISPLAY NAME",
+      "labelCode": "ADD-ON CODE / IDENTIFIER",
+      "labelDescription": "DETAILED DESCRIPTION",
+      "labelCategory": "CATEGORY",
+      "labelEffectiveDate": "EFFECTIVE DATE",
+      "labelPrice": "INR PRICE (₹)",
+      "labelCadence": "CADENCE",
+      "labelMinQty": "MINIMUM PURCHASE QTY",
+      "labelMaxQty": "MAXIMUM PURCHASE QTY",
+      "labelUnitLabel": "UNIT LABEL (e.g. location, 5 users)",
+      "labelSubtitle": "PRICING SUBTITLE",
+      "placeholderName": "e.g. Additional Location Deployment",
+      "placeholderCode": "e.g. ad-loc-11",
+      "placeholderDescription": "Permits tenant organizations to provision additional resources beyond their root entitlement base level.",
+      "placeholderCategory": "e.g. Locations & Logistics",
+      "placeholderUnitLabel": "e.g. location",
+      "placeholderSubtitle": "e.g. Per site monthly billing",
+      "unitSuffix": "Unit",
+      "unitsMaxSuffix": "Units Max",
+      "errors": {
+        "nameRequired": "Add-on display name is required",
+        "codeRequired": "Add-on code identifier is required",
+        "publishFieldsRequired": "Display name and add-on code are required before publishing",
+        "loadFailed": "Failed to load add-on configuration",
+        "saveFailed": "Failed to save add-on progress",
+        "publishFailed": "Failed to publish add-on"
+      }
+    },
+    "toast": {
+      "published": "Add-on option '{{name}}' published successfully.",
+      "retired": "Commercial add-on '{{name}}' retired.",
+      "progressSaved": "Add-on progress saved successfully.",
+      "created": "New commercial add-on created successfully.",
+      "editorPublished": "Commercial add-on '{{name}}' published successfully."
+    }
+  },
+  "orgs": {
+    "directory": {
+      "title": "Partner Applications",
+      "subtitle": "Manage and inspect partner registrations, onboarding progress, and credentials",
+      "exportTitle": "Export records to CSV",
+      "refreshTitle": "Refresh database records",
+      "addPartner": "Add Partner",
+      "kpi": {
+        "restaurants": "Restaurants",
+        "services": "Service Providers",
+        "logistics": "Logistics Fleet"
+      },
+      "allTypes": "All Types",
+      "domain": {
+        "restaurant": "Restaurant",
+        "logistics": "Logistics",
+        "service": "Service"
+      },
+      "loading": "Loading organizations from database...",
+      "emptyTitle": "No organizations found",
+      "emptyBody": "No organization records match your active status tab, domain filter, or search term.",
+      "clearFilters": "Clear Filters",
+      "row": {
+        "completion": "Onboarding Completion",
+        "stepsCompleted": "{{done}}/{{total}} steps completed",
+        "review": "Review"
+      },
+      "showing": "Showing {{shown}} of {{total}} partner applications",
+      "loadFailed": "Failed to load organizations",
+      "createFailed": "Failed to create organization",
+      "deleteFailed": "Delete failed: {{reason}}",
+      "toast": {
+        "created": "Created organization: \"{{name}}\"",
+        "deleted": "Deleted organization: \"{{name}}\"",
+        "nothingToExport": "No organization records available to export",
+        "exported": "Exported {{total}} organization records to CSV."
+      },
+      "form": {
+        "title": "Add New Partner Application",
+        "subtitle": "Register and initiate onboarding for a partner entity",
+        "businessName": "Business / Partner Name",
+        "businessNamePlaceholder": "e.g. Spice Route Kitchen Corp",
+        "domainType": "Domain Type",
+        "contactEmail": "Contact Email",
+        "emailPlaceholder": "e.g. contact@spiceroute.com",
+        "phoneNumber": "Phone Number",
+        "phonePlaceholder": "+1 (555) 082-1920",
+        "creating": "Creating...",
+        "submit": "Create Application"
+      },
+      "delete": {
+        "title": "Delete Organization",
+        "body": "Are you sure you want to permanently delete <strong>{{name}}</strong> from the database? This action cannot be undone.",
+        "confirm": "Confirm Delete"
+      }
+    },
+    "pipeline": {
+      "eyebrow": "ONBOARDING SYSTEM",
+      "title": "Onboard new partner onto OneLatur",
+      "intro": "Configure and launch “Restaurant Partners” easily - set store parameters, complete KYC validation, handle contract signing, and trigger system activation.",
+      "selectType": "SELECT PARTNER TYPE",
+      "learnRequirements": "Learn about requirements",
+      "requirementsAlert": "Partner Requirements & Compliance guidelines modal.",
+      "activeSelection": "ACTIVE SELECTION",
+      "types": {
+        "platformAdmin": {
+          "name": "Platform Admin Partner",
+          "description": "Sub-franchise, regional managers, admin roles"
+        },
+        "restaurant": {
+          "name": "Restaurant Partner",
+          "description": "Dine-in establishments, cloud kitchens, QSR"
+        },
+        "service": {
+          "name": "Service Partner",
+          "description": "Maintenance providers, waste management, repairs"
+        },
+        "logistic": {
+          "name": "Logistic Partner",
+          "description": "Fleet operators, delivery drivers, transit routes"
+        }
+      },
+      "badge": {
+        "total": "Total {{value}}",
+        "draft": "Draft {{value}}",
+        "active": "Active {{value}}"
+      },
+      "table": {
+        "title": "Active Onboarding Pipeline",
+        "subtitle": "Review documentation, check status updates, and approve pending partners.",
+        "searchPlaceholder": "Search partners...",
+        "business": "PARTNER BUSINESS",
+        "steps": "ONBOARDING STEPS & KYC",
+        "hours": "OPERATIONAL HOURS",
+        "activation": "ACTIVATION STATUS",
+        "actions": "ACTIONS",
+        "empty": "No partners matching search criteria."
+      },
+      "businessType": {
+        "restaurantPartner": "Rest. Partner",
+        "logistics": "Logistics",
+        "servicePartner": "Service Partner"
+      },
+      "step": {
+        "kycVerified": "KYC Verified",
+        "menuSet_one": "Menu Set • {{count}} Item",
+        "menuSet_other": "Menu Set • {{count}} Items",
+        "documentsPending": "Documents Pending",
+        "contractSigned": "Contract Signed"
+      },
+      "hours": {
+        "fleet24": "24 Hours Fleet"
+      },
+      "row": {
+        "typeAndId": "{{type}} • ID: {{id}}",
+        "configure": "Configure",
+        "onboard": "Onboard",
+        "configuring": "Configuring {{name}}...",
+        "launching": "Launching onboarding for {{name}}..."
+      }
+    },
+    "detail": {
+      "backToOrg360": "Back to Organization 360",
+      "orgIdBadge": "Org ID: {{id}}",
+      "title": "Partner Detail",
+      "subtitle": "Full-page review for {{name}}, including onboarding progress, contact information, document uploads, and lifecycle actions.",
+      "summary": {
+        "title": "Partner Summary",
+        "partnerId": "Partner ID",
+        "primaryStore": "Primary Store",
+        "onboarding": "Onboarding",
+        "percentComplete": "{{percent}}% complete"
+      },
+      "onboarding": {
+        "title": "Onboarding Progress",
+        "summary_one": "{{percent}}% complete • {{num}} required step",
+        "summary_other": "{{percent}}% complete • {{num}} required steps",
+        "steps": {
+          "becomePartner": "Become Partner",
+          "verify": "Verify",
+          "businessInfo": "Business Info",
+          "shopDetails": "Shop Details",
+          "documents": "Documents",
+          "bank": "Bank",
+          "operations": "Operations",
+          "agreement": "Agreement",
+          "reviewSubmit": "Review & Submit"
+        }
+      },
+      "contact": {
+        "title": "Contact & Basic",
+        "subtitle": "Primary contact details and verification status for the partner.",
+        "phone": "Phone",
+        "city": "City",
+        "mobileVerified": "Mobile verified",
+        "emailVerified": "Email verified",
+        "verified": "Verified"
+      },
+      "documents": {
+        "title": "Documents",
+        "subtitle": "Upload status for the required partner verification documents.",
+        "items": {
+          "panCard": "PAN Card",
+          "aadhaarCard": "Aadhaar Card",
+          "gstCertificate": "GST Certificate",
+          "shopLicense": "Shop Establishment License",
+          "cancelledCheque": "Cancelled Cheque"
+        }
+      },
+      "review": {
+        "title": "Review Actions",
+        "subtitle": "Lifecycle actions for the partner application.",
+        "approve": "Approve",
+        "reject": "Reject",
+        "markUnderReview": "Mark under review",
+        "deletePartner": "Delete Partner",
+        "approveNotReady": "The Approve button is clickable, but it doesn't do anything yet. Its functionality is still in progress.",
+        "rejectNotReady": "The Reject button is clickable, but it doesn't do anything yet. Its functionality is still in progress.",
+        "markUnderReviewNotReady": "The Mark under review button is clickable, but it doesn't do anything yet. Its functionality is still in progress."
+      },
+      "delete": {
+        "title": "Delete Partner",
+        "irreversible": "This action cannot be undone.",
+        "confirm": "Are you sure you want to permanently delete partner <b>{{name}}</b> (ID: {{id}}) and all of its associated records, branches, and documents?",
+        "deleting": "Deleting..."
+      },
+      "toast": {
+        "noPermissionDelete": "You do not have permission to delete partners",
+        "deleted": "Partner {{name}} deleted.",
+        "deleteFailed": "Failed to delete partner"
+      }
+    }
+  },
+  "packs": {
+    "shared": {
+      "breadcrumbMaster": "Master",
+      "breadcrumbCommercials": "Commercials",
+      "breadcrumbPacks": "Packs",
+      "createPack": "Create Feature Pack"
+    },
+    "list": {
+      "title": "Commercial Feature Packs",
+      "filters": "Filters",
+      "filterByCompatibility": "Filter by Plan Compatibility",
+      "allCompatiblePlans": "All Compatible Plans",
+      "noPublishedPlans": "No published plans available",
+      "compatibilityLabel": "Compatibility:",
+      "clearFilter": "Clear filter",
+      "loading": "Loading commercial feature packs...",
+      "emptyTitle": "No Commercial Feature Packs Found",
+      "emptyBody": "Zero static data is loaded. Feature packs allow you to bundle advanced platform capabilities (such as Custom SQL reporting or Multi-location sync) as monetizable add-ons.",
+      "columns": {
+        "packName": "Pack Name",
+        "compatiblePlans": "Compatible Plans",
+        "includedFeatures": "Included Features",
+        "priceInr": "Price (INR)",
+        "assignedOrgs": "Assigned Orgs"
+      },
+      "packId": "Pack ID: {{code}}",
+      "allCommercialPlans": "All Commercial Plans",
+      "standardCapability": "Standard Capability",
+      "priceWithCadence": "{{amount}} / {{cadence}}",
+      "orgsCount_one": "{{count}} Org",
+      "orgsCount_other": "{{count}} Orgs",
+      "editPack": "Edit Pack",
+      "editDraft": "Edit Draft"
+    },
+    "dialog": {
+      "retireTitle": "Retire Feature Pack",
+      "retireSubtitle": "Update lifecycle status to archive pack from new adoptions.",
+      "packName": "Pack Name:",
+      "packCode": "Pack Code:",
+      "currentPrice": "Current Price:",
+      "assignedOrgs": "Assigned Organizations:",
+      "retireConfirm": "Are you sure you want to retire <strong>\"{{name}}\"</strong>? Existing organizations will retain their pack access, but new subscriptions will be restricted from adopting it.",
+      "confirmRetire": "Confirm & Retire Pack",
+      "retiring": "Retiring Pack..."
+    },
+    "toast": {
+      "published": "Feature pack '{{name}}' published successfully.",
+      "retired": "Feature pack '{{name}}' retired.",
+      "created": "Feature pack '{{name}}' created successfully.",
+      "updated": "Feature pack '{{name}}' updated successfully.",
+      "loadFailed": "Failed to load commercial feature packs",
+      "publishFailed": "Failed to publish feature pack",
+      "retireFailed": "Failed to retire feature pack",
+      "loadConfigFailed": "Failed to load pack configuration",
+      "saveFailed": "Failed to save feature pack"
+    },
+    "editor": {
+      "loading": "Loading pack configuration...",
+      "featurePackFallback": "Feature Pack",
+      "featureFallback": "Feature",
+      "titleEdit": "Edit {{name}} Pack",
+      "save": "Save Feature Pack",
+      "noteLabel": "Note:",
+      "configDetails": "Pack Configuration Details",
+      "validation": {
+        "nameRequired": "Pack name is required"
+      },
+      "field": {
+        "packName": "Pack Name",
+        "packCode": "Pack Code (Unique Identifier)",
+        "compatiblePlans": "Compatible Plans",
+        "priceMonthly": "INR Price (Monthly)",
+        "effectiveDate": "Effective Date (Asia/Kolkata timezone)",
+        "extendedLimits": "Extended Limits",
+        "highlightsTitle": "Feature Highlights Title",
+        "highlightsSubtitle": "Feature Highlights Subtitle",
+        "prerequisiteNote": "Prerequisite Note (Yellow Banner Text)"
+      },
+      "placeholder": {
+        "packName": "e.g. Advanced Reporting Pack",
+        "packCode": "e.g. pk-adv-rep-99",
+        "extendedLimits": "e.g. Adds +5 custom metrics panels, unlimited scheduled reports to target workspace profiles.",
+        "highlightsTitle": "e.g. Custom SQL, Scheduled PDF",
+        "highlightsSubtitle": "e.g. Up to 50 scheduled dashboards",
+        "prerequisiteNote": "e.g. Advanced Reporting requires intelligence platform module ready state."
+      },
+      "hint": {
+        "packCode": "Leave blank to auto-generate from the pack name.",
+        "compatiblePlans": "Select plans before plan is eligible to run with this feature pack. Leave empty to allow compatibility across all commercial plans."
+      },
+      "plansSelected_one": "{{count}} plan selected",
+      "plansSelected_other": "{{count}} plans selected",
+      "plansPlaceholder": "Click to select published plans (or leave empty for All Plans)...",
+      "removePlan": "Remove plan",
+      "clear": "Clear",
+      "searchPlans": "Search published plans...",
+      "clearSearch": "Clear search",
+      "selectAll": "Select All",
+      "clearAll": "Clear all",
+      "noPublishedPlans": "No published commercial plans found",
+      "noMatchingPlans": "No matching published plans",
+      "added": "Added",
+      "addPlan": "+ Add"
+    }
+  },
+  "plans": {
+    "list": {
+      "title": "SaaS Commercial Plans",
+      "breadcrumb": {
+        "master": "Master",
+        "plans": "Commercial Plans"
+      },
+      "tabs": {
+        "plans": "Commercial Plans",
+        "modules": "Platform Modules"
+      },
+      "viewActivePlans": "View Active Plans",
+      "viewRetiredPlans": "View Retired Plans",
+      "createPlan": "Create Plan",
+      "createFirstPlan": "Create First Plan",
+      "modulesRequired": {
+        "title": "Platform Modules Required Before Creating Plans",
+        "body": "No platform modules currently exist in the database. Please create platform modules first before configuring commercial plans.",
+        "link": "View Platform Modules →"
+      },
+      "filters": "Filters",
+      "filterByStatus": "Filter plans by status",
+      "filterByCurrency": "Filter plans by currency",
+      "statusOption": "Status: {{value}}",
+      "statusAllActive": "All Active",
+      "statusAllStatuses": "All Statuses",
+      "currencyOption": "Currency: {{value}}",
+      "loading": "Loading commercial plans...",
+      "emptyTitle": "No commercial plans found",
+      "emptyBody": "No SaaS commercial plans have been created yet.",
+      "emptyRetiredTitle": "No retired plans found",
+      "emptyRetiredBody": "There are currently no archived or retired plans.",
+      "columns": {
+        "planVersion": "PLAN NAME & VERSION",
+        "priceCadence": "PRICE & CADENCE",
+        "status": "STATUS",
+        "modules": "INCLUDED MODULES",
+        "limits": "KEY LIMITS",
+        "assignments": "ASSIGNMENTS",
+        "lastUpdated": "LAST UPDATED",
+        "actions": "ACTIONS"
+      },
+      "versionLabel": "Version {{version}} ({{type}})",
+      "cadenceShort": {
+        "default": "/ mo",
+        "monthly": "/ month",
+        "quarterly": "/ quarter",
+        "annual": "/ annual",
+        "yearly": "/ year",
+        "one_time": "/ one-time"
+      },
+      "taxNote": {
+        "gst18": "+18% GST Applicable",
+        "exclusiveGst": "Exclusive of GST"
+      },
+      "modules": {
+        "none": "No Modules",
+        "noneNote": "Minimal Core",
+        "all": "All Platform Modules",
+        "allNote": "Architectural Ready",
+        "coreCount_one": "{{count}} Core Module",
+        "coreCount_other": "{{count}} Core Modules",
+        "more": "+{{value}} Core Modules"
+      },
+      "limits": {
+        "unlimitedLocations": "Unlimited Locations",
+        "locationsAllowed_one": "{{count}} Location Allowed",
+        "locationsAllowed_other": "{{count}} Locations Allowed",
+        "unlimitedAdmins": "Unlimited Admins",
+        "coreAdminUsers": "{{value}} Core Admin Users"
+      },
+      "assignmentsLabel": "{{value}} Active Orgs",
+      "updatedBy": {
+        "you": "by you",
+        "user": "by {{email}}",
+        "system": "by system"
+      },
+      "editDraft": "Edit Draft",
+      "viewHistory": "View History"
+    },
+    "dialog": {
+      "retire": {
+        "title": "Retire Commercial Plan",
+        "subtitle": "Update plan lifecycle status to restrict new organization adoptions.",
+        "planName": "Plan Name:",
+        "pricing": "Pricing / Cadence:",
+        "subscriptions": "Active Subscriptions:",
+        "confirmBody": "Are you sure you want to retire <strong>\"{{name}}\"</strong>? Existing organizations will continue on this plan uninterrupted, but new organizations cannot be assigned to it.",
+        "retiring": "Retiring Plan...",
+        "confirm": "Confirm & Retire Plan"
+      }
+    },
+    "toast": {
+      "duplicated": "Duplicated \"{{name}}\" into new draft.",
+      "duplicateFailed": "Failed to duplicate plan.",
+      "retired": "Plan \"{{name}}\" status updated to Retired.",
+      "retireFailed": "Failed to retire plan.",
+      "modulesRequired": "Please create platform modules first before creating a commercial plan.",
+      "historyShown": "Displaying audit history for {{name}}",
+      "noPermissionModules": "You don't have permission to modify module bundles.",
+      "modulesRequiredToSave": "Platform modules are required before saving a plan. Please register platform modules first.",
+      "noPermissionEdit": "You don't have permission to edit plans.",
+      "noPermissionCreate": "You don't have permission to create plans.",
+      "draftCreated": "Plan draft created successfully.",
+      "draftSaved": "Plan draft saved successfully.",
+      "saveDraftFailed": "Failed to save draft.",
+      "modulesRequiredToPublish": "Platform modules are required before publishing a plan. Please register platform modules first.",
+      "noPermissionPublish": "You don't have permission to publish plans.",
+      "createdAndPublished": "Plan \"{{name}}\" created and published!",
+      "published": "Plan \"{{name}}\" published successfully!",
+      "publishFailed": "Failed to publish plan."
+    },
+    "editor": {
+      "breadcrumb": {
+        "master": "Master",
+        "commercials": "Commercials",
+        "plans": "Plans",
+        "newPlan": "New Plan",
+        "editPlan": "Edit Plan"
+      },
+      "createTitle": "Create Commercial Plan",
+      "editTitle": "Edit {{name}}",
+      "planFallback": "Plan",
+      "previewPublishImpact": "Preview Publish Impact",
+      "saveDraft": "Save Draft",
+      "publishing": "Publishing...",
+      "publishPlan": "Publish Plan",
+      "modulesRequired": {
+        "title": "Platform Modules Required Before Creating Plans",
+        "body": "No platform modules currently exist in the database. Please register platform modules first before configuring a commercial plan."
+      },
+      "goToModules": "Go to Platform Modules →",
+      "unsavedChanges": "You have unsaved module limit changes. Previewing impact is recommended prior to publishing.",
+      "basics": {
+        "title": "Plan Basics",
+        "planName": "PLAN NAME *",
+        "planNamePlaceholder": "e.g. Standard Growth",
+        "planCode": "PLAN CODE (SLUG) *",
+        "planCodePlaceholder": "e.g. standard_growth",
+        "price": "PRICE (INR) *",
+        "pricePlaceholder": "e.g. 4999",
+        "billingCadence": "BILLING CADENCE",
+        "trialDays": "TRIAL PERIOD (DAYS)",
+        "effectiveDate": "EFFECTIVE DATE"
+      },
+      "limits": {
+        "title": "Hard Provision Limits",
+        "locationsAllowed": "Locations allowed",
+        "locationsHint": "Defines maximum tenant deployment sites",
+        "coreAdminUsers": "Core admin users",
+        "coreAdminUsersHint": "Total master administration personnel permitted"
+      },
+      "bundle": {
+        "title": "Included Platform Modules",
+        "subtitle": "Select which modular capabilities are enabled for this commercial tier.",
+        "selected": "{{value}} SELECTED",
+        "loading": "Loading platform modules...",
+        "emptyTitle": "No Platform Modules Available",
+        "emptyBody": "No platform modules currently exist in the database. You must register platform modules first before configuring commercial plan bundles.",
+        "future": "FUTURE"
+      },
+      "backToPlans": "Back to Plans",
+      "preview": {
+        "title": "Publish Impact Preview",
+        "reviewTitle": "Review Plan Configuration:",
+        "reviewBody": "Active tenant subscriptions assigned to this tier will immediately reflect these limits upon publishing.",
+        "planName": "Plan Name:",
+        "untitled": "Untitled Plan",
+        "planCode": "Plan Code:",
+        "price": "Price:",
+        "priceValue": "{{currency}} {{price}} / {{cadence}}",
+        "activeModules": "Active Modules:",
+        "modulesIncluded": "{{value}} Included",
+        "maxLocations": "Max Locations:",
+        "locationsAllowed": "{{value}} Allowed",
+        "adminSeats": "Admin Seats:",
+        "adminUsers": "{{value}} Users",
+        "close": "Close Preview",
+        "confirm": "Confirm & Request Publish"
+      }
+    }
+  },
+  "roles": {
+    "page": {
+      "policiesTitle": "Security Policies",
+      "policiesSubtitle": "Configure feature-by-feature access controls, review actions, and security policies",
+      "templatesTitle": "Security Templates",
+      "templatesSubtitle": "Set default permissions templates or customize them to build custom roles",
+      "searchPlaceholder": "Search roles or permissions...",
+      "createRole": "Create Role",
+      "loading": "Loading security roles...",
+      "emptyTitle": "No security roles found",
+      "emptyBody": "No roles have been created yet. Define your first custom role template with granular page and action permissions.",
+      "createFirstRole": "Create First Role",
+      "addCustomRole": "Add Custom Role",
+      "addCustomRoleHint": "Customize page accessibility, review actions, and locations table controls"
+    },
+    "scope": {
+      "allScopes": "All Scopes",
+      "platform": "Platform",
+      "assigned_platform_scope": "Assigned platform scope",
+      "one_organization": "One organization",
+      "assigned_locations": "Assigned locations",
+      "specific_outlet": "Specific outlet"
+    },
+    "access": {
+      "none": "No Access",
+      "readOnly": "Read-Only",
+      "full": "Full Control"
+    },
+    "card": {
+      "scope": "Scope",
+      "locationsTable": "Locations Table:",
+      "fullAccessAddEdit": "Full Access (Add/Edit)",
+      "reviewActions": "Review Actions:",
+      "review": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "review": "Review",
+        "delete": "Delete"
+      },
+      "staffAssigned_one": "{{count}} staff assigned",
+      "staffAssigned_other": "{{count}} staff assigned",
+      "privileges": "{{enabled}} of {{total}} privileges",
+      "viewTitle": "View permissions",
+      "editTitle": "Edit role",
+      "deleteTitle": "Delete custom role"
+    },
+    "modal": {
+      "createTitle": "New custom role",
+      "editTitle": "Edit custom role",
+      "viewTitle": "{{name}} (Role Permissions)",
+      "viewSubtitle": "Inspect page access rights, locations table permissions, and review actions",
+      "editSubtitle": "Configure feature accessibility, review lifecycle actions, and operational rights",
+      "footerNote": "Permissions take effect instantly across all designated users assigned to this role.",
+      "saveRole": "Save Role",
+      "editThisRole": "Edit This Role"
+    },
+    "form": {
+      "roleName": "Role name *",
+      "roleNamePlaceholder": "e.g. Regional Supervisor",
+      "key": "Key *",
+      "operationalScope": "Operational Scope",
+      "copyFromTemplate": "Copy from template",
+      "selectDefaultRole": "Select a default role...",
+      "roleDescription": "Role Description",
+      "roleDescriptionPlaceholder": "Specify staff access duties and operational privileges...",
+      "activeToggleAria": "Toggle active role status",
+      "activeLabel": "Role is active and assignable"
+    },
+    "matrix": {
+      "title": "Feature & Page Permissions Matrix",
+      "activeCount": "{{enabled}} of {{total}} active",
+      "subtitle": "Configure page access levels (None / Read-Only / Full Control) and granular action rights",
+      "presetFull": "Full Access All",
+      "presetReadOnly": "Read-Only All",
+      "presetClear": "Clear All",
+      "moduleCategory": "Module Category:",
+      "categoryAria": "Filter features by module category",
+      "showing_one": "Showing <b>{{count}}</b> feature module",
+      "showing_other": "Showing <b>{{count}}</b> feature modules",
+      "specificActions": "Specific Action Permissions",
+      "toggleAria": "{{feature}} - {{action}}"
+    },
+    "category": {
+      "all": "All Pages & Features ({{n}})",
+      "commercials": "Commercials & Plans ({{n}})",
+      "partner_detail": "Partner Detail & Review ({{n}})",
+      "organization": "Organization 360 ({{n}})",
+      "access_control": "Users & Access Control ({{n}})",
+      "system": "Audit & System Logs ({{n}})"
+    },
+    "toast": {
+      "loadFailed": "Failed to load roles",
+      "copiedFromTemplate": "Copied permissions and scope from \"{{name}}\"",
+      "appliedFull": "Applied Full Access across all features",
+      "appliedReadOnly": "Applied Read-Only access across all features",
+      "clearedAll": "Cleared all permissions",
+      "noPermissionCreate": "You do not have permission to create roles",
+      "noPermissionEdit": "You do not have permission to edit roles",
+      "noPermissionDelete": "You do not have permission to delete roles",
+      "nameRequired": "Role name is required",
+      "duplicateName": "A security role with name \"{{name}}\" already exists",
+      "updated": "Role \"{{name}}\" updated successfully!",
+      "created": "New custom role \"{{name}}\" created!",
+      "saveFailed": "Failed to save role",
+      "deleted": "Role \"{{name}}\" deleted successfully.",
+      "deleteFailed": "Failed to delete role"
+    },
+    "delete": {
+      "title": "Delete Custom Role",
+      "warning": "This action cannot be undone.",
+      "confirm": "Are you sure you want to permanently delete role <b>{{name}}</b> (key: {{roleKey}})?",
+      "deleting": "Deleting...",
+      "deleteRole": "Delete Role"
+    },
+    "features": {
+      "feat_partner_review": {
+        "name": "Partner Detail: Review Lifecycle Actions",
+        "description": "Control whether this user can approve, reject, flag under review, or permanently delete partner organizations.",
+        "actions": {
+          "approve_partner": {
+            "label": "Approve Partner",
+            "description": "Authorize and approve onboarding application"
+          },
+          "reject_partner": {
+            "label": "Reject Partner",
+            "description": "Decline and reject onboarding application"
+          },
+          "mark_under_review": {
+            "label": "Mark Under Review",
+            "description": "Change status to Pending review"
+          },
+          "delete_partner": {
+            "label": "Delete Partner",
+            "description": "Permanently delete partner and all records"
+          }
+        }
+      },
+      "feat_partner_locations": {
+        "name": "Partner Detail: Locations Management Table",
+        "description": "Control access to the locations table in partner detail. Choose if it is read-only or if user can create/delete branches.",
+        "actions": {
+          "view_locations": {
+            "label": "View Locations Table",
+            "description": "Read-only access to outlets list and last sync status"
+          },
+          "create_location": {
+            "label": "Add New Location",
+            "description": "Create outlet records with auto-generated location codes"
+          },
+          "edit_location": {
+            "label": "Edit Location Details",
+            "description": "Update location area, type, timezone, and currency"
+          },
+          "delete_location": {
+            "label": "Delete Location",
+            "description": "Permanently remove a branch or operational outlet"
+          }
+        }
+      },
+      "feat_partner_docs": {
+        "name": "Partner Detail: Documents & Verification",
+        "description": "Manage access to PAN, Aadhaar, GST certificate, and license verification documents.",
+        "actions": {
+          "view_docs": {
+            "label": "View Uploaded Documents",
+            "description": "Inspect uploaded verification files and certificates"
+          },
+          "verify_docs": {
+            "label": "Verify & Approve Documents",
+            "description": "Mark KYC documents as approved or rejected"
+          },
+          "edit_contact_info": {
+            "label": "Edit Contact Information",
+            "description": "Modify partner email, phone number, and city details"
+          }
+        }
+      },
+      "feat_org_360": {
+        "name": "Organization 360: Directory & Search",
+        "description": "Access the global directory of partners, search by domain/status, and register new organizations.",
+        "actions": {
+          "view_directory": {
+            "label": "View Organizations Directory",
+            "description": "Browse partner directory with search and status filters"
+          },
+          "create_org": {
+            "label": "Register Organization",
+            "description": "Create new partner records via onboarding modal"
+          },
+          "export_org_csv": {
+            "label": "Export Organization Records",
+            "description": "Download filtered partner listings as CSV/Excel"
+          }
+        }
+      },
+      "feat_commercial_plans": {
+        "name": "Commercials: Platform Plans & Modules",
+        "description": "Control access to SaaS tier pricing, provisioning quotas (locations & user limits), platform module bundle selections, draft revisions, and live plan publishing.",
+        "actions": {
+          "view_plans": {
+            "label": "View Platform Plans",
+            "description": "Browse the SaaS plans table, inspect pricing, filter by currency/status, and view assigned tenant counts"
+          },
+          "create_plan": {
+            "label": "Create New Plan",
+            "description": "Access the plan creation wizard, configure initial tier name, billing cadence, and trial periods"
+          },
+          "edit_plan": {
+            "label": "Edit Plan & Limits",
+            "description": "Modify plan pricing, update hard provision limits (max locations, admin seats), and change effective dates"
+          },
+          "manage_modules": {
+            "label": "Configure Included Modules",
+            "description": "Select or deselect platform modules bundled into a plan"
+          },
+          "publish_plan": {
+            "label": "Publish Plan Impact",
+            "description": "Preview live tenant impact modal and request/publish plan drafts into active production tiers"
+          },
+          "duplicate_plan": {
+            "label": "Duplicate Plan",
+            "description": "Clone an existing published or retired plan into a new working draft version"
+          },
+          "retire_plan": {
+            "label": "Retire / Archive Plan",
+            "description": "Mark plans as Retired to grandfather existing tenants while restricting new organization assignments"
+          }
+        }
+      },
+      "feat_commercial_packs": {
+        "name": "Commercials: Feature Packs",
+        "description": "Control access to commercial feature add-on packs, pricing configuration, tier plan compatibility, and live pack publishing.",
+        "actions": {
+          "view_packs": {
+            "label": "View Feature Packs",
+            "description": "Browse the commercial feature packs table, inspect pricing and assigned tenant counts"
+          },
+          "create_pack": {
+            "label": "Create Feature Pack",
+            "description": "Configure new add-on feature packs with pricing and compatible tier plans"
+          },
+          "edit_pack": {
+            "label": "Edit Feature Pack",
+            "description": "Modify pack pricing, extended limits, effective dates, and plan compatibility"
+          },
+          "publish_pack": {
+            "label": "Publish Feature Pack",
+            "description": "Publish draft feature packs into active production availability"
+          },
+          "retire_pack": {
+            "label": "Retire Feature Pack",
+            "description": "Archive or retire feature packs to restrict new tenant adoption"
+          },
+          "delete_pack": {
+            "label": "Delete Draft Pack",
+            "description": "Permanently delete draft feature packs not assigned to any organizations"
+          }
+        }
+      },
+      "feat_commercial_addons": {
+        "name": "Commercials: Optional Add-ons",
+        "description": "Control access to SaaS optional commercial add-ons, pricing configuration, tier plan compatibility, and add-on publishing/retiring.",
+        "actions": {
+          "view_addons": {
+            "label": "View Optional Add-ons",
+            "description": "Browse commercial add-ons catalog, inspect pricing, category, compatibility and active allocations"
+          },
+          "create_addon": {
+            "label": "Create Add-on",
+            "description": "Access add-on creation editor, configure metadata, pricing, cadence and purchase limits"
+          },
+          "edit_addon": {
+            "label": "Edit Add-on",
+            "description": "Modify add-on metadata, description, pricing, purchase quantity limits and plan compatibility"
+          },
+          "publish_addon": {
+            "label": "Publish Add-on",
+            "description": "Publish draft add-on options into active catalog for tenant provisioning"
+          },
+          "retire_addon": {
+            "label": "Retire Add-on",
+            "description": "Retire active add-ons to restrict new purchases while preserving existing client subscriptions"
+          },
+          "delete_addon": {
+            "label": "Delete Draft Add-on",
+            "description": "Permanently remove unpublished draft add-ons not assigned to any organizations"
+          }
+        }
+      },
+      "feat_users_mgmt": {
+        "name": "Access Control: Users Management",
+        "description": "Administer system accounts, invite staff members, and modify panel assignments and statuses.",
+        "actions": {
+          "view_users": {
+            "label": "View Staff Accounts",
+            "description": "Browse user accounts, panels, and activity states"
+          },
+          "invite_user": {
+            "label": "Invite / Add Staff",
+            "description": "Issue onboarding invitations for new staff users"
+          },
+          "edit_user": {
+            "label": "Edit Roles & Panels",
+            "description": "Change user access panel, role tier, and active status"
+          },
+          "delete_user": {
+            "label": "Delete Staff Account",
+            "description": "Revoke credentials and delete system accounts"
+          }
+        }
+      },
+      "feat_roles_templates": {
+        "name": "Access Control: Roles & Permissions (Security Policies)",
+        "description": "Configure role definitions, customize security policies, and manage feature-by-feature permission matrices.",
+        "actions": {
+          "view_roles": {
+            "label": "View Roles & Permissions",
+            "description": "Inspect role profiles, permissions matrix, and security policies"
+          },
+          "create_roles": {
+            "label": "Create Roles & Permissions",
+            "description": "Configure new role templates with customized permission matrix"
+          },
+          "edit_roles": {
+            "label": "Edit Roles & Permissions",
+            "description": "Modify authorization parameters, permissions matrix, and actions on existing roles"
+          },
+          "delete_roles": {
+            "label": "Delete Roles & Permissions",
+            "description": "Permanently delete custom role definitions"
+          }
+        }
+      },
+      "feat_audit_compliance": {
+        "name": "Audit Trails & Security Logs",
+        "description": "Review platform audit logs, security authentication events, and data modification timestamps.",
+        "actions": {
+          "view_audit_logs": {
+            "label": "View Audit Trail",
+            "description": "Inspect immutable audit logs of platform operations"
+          },
+          "export_audit_logs": {
+            "label": "Export Audit Reports",
+            "description": "Export compliance logs for compliance verification"
+          }
+        }
+      }
+    }
+  },
+  "users": {
+    "search": {
+      "placeholder": "Search name, email, mobile, role..."
+    },
+    "filter": {
+      "allRoles": "All Security Roles",
+      "allStatuses": "All Statuses"
+    },
+    "refreshTitle": "Refresh database",
+    "list": {
+      "title": "System Accounts",
+      "subtitle": "System accounts authenticated via security policies and granular permissions."
+    },
+    "table": {
+      "email": "EMAIL",
+      "securityRole": "SECURITY ROLE",
+      "mobile": "MOBILE",
+      "status": "STATUS",
+      "loading": "Loading database users...",
+      "empty": "No matching accounts found in database.",
+      "assignedRole": "Assigned Role",
+      "noRoleAssigned": "No Role Assigned",
+      "activePolicy": "Active Policy",
+      "unassigned": "Unassigned",
+      "editRowTitle": "Click row to edit account details"
+    },
+    "results": "Showing {{from}}-{{to}} of {{total}} results",
+    "roleScope": {
+      "platform": "Platform",
+      "assigned_platform_scope": "Assigned platform scope",
+      "one_organization": "One organization",
+      "all_organizations": "All organizations",
+      "assigned_locations": "Assigned locations",
+      "specific_outlet": "Specific outlet"
+    },
+    "edit": {
+      "title": "Edit System Account",
+      "subtitle": "Update administrator details, security role assignment, and access status.",
+      "updated": "Account details and security role updated!",
+      "deleteUser": "Delete User",
+      "saveChanges": "Save Changes"
+    },
+    "form": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "emailAddress": "Email Address",
+      "mobileNumber": "Mobile Number",
+      "securityRole": "Security Role",
+      "noRoleOption": "No Role Assigned (Restricted)",
+      "roleOption": "{{name}} ({{scope}})"
+    },
+    "alerts": {
+      "updateFailed": "Update failed: {{message}}",
+      "cannotDeleteSelf": "You cannot delete your own active session account.",
+      "confirmDelete": "Are you sure you want to delete {{email}}?",
+      "deleteFailed": "Delete failed: {{message}}"
+    }
+  },
+  "modules": {
+    "title": "Platform Modules",
+    "subtitle": "Configure system modular capabilities and short identifiers (keys) bundled into commercial tiers.",
+    "breadcrumb": {
+      "master": "Master",
+      "commercials": "Commercials"
+    },
+    "tabs": {
+      "plans": "Commercial Plans"
+    },
+    "actions": {
+      "create": "Create Module",
+      "createFirst": "Create First Module",
+      "edit": "Edit Module",
+      "update": "Update Module",
+      "delete": "Delete Module"
+    },
+    "filter": {
+      "searchPlaceholder": "Search modules by name or key...",
+      "category": "Category:"
+    },
+    "loading": "Loading platform modules...",
+    "empty": {
+      "title": "No platform modules found",
+      "filtered": "No platform modules matched your current filter criteria.",
+      "none": "No platform modules exist in the database. Please create platform modules first before configuring commercial plans."
+    },
+    "table": {
+      "name": "MODULE NAME & DESCRIPTION",
+      "key": "MODULE KEY",
+      "category": "CATEGORY",
+      "status": "STATUS",
+      "bundledIn": "BUNDLED IN",
+      "created": "CREATED",
+      "actions": "ACTIONS"
+    },
+    "plansCount_one": "{{n}} Plan",
+    "plansCount_other": "{{n}} Plans",
+    "category": {
+      "core": "Core",
+      "commerce": "Commerce",
+      "supply": "Supply",
+      "operations": "Operations",
+      "security": "Security"
+    },
+    "modal": {
+      "createTitle": "Create Platform Module",
+      "editTitle": "Edit Module \"{{name}}\"",
+      "nameLabel": "MODULE NAME *",
+      "namePlaceholder": "e.g. Commerce Engine",
+      "keyLabel": "MODULE KEY (MAX 6 CHARS) *",
+      "keyPlaceholder": "e.g. MODCME",
+      "keyHint": "Unique key (2-6 uppercase characters) referenced in commercial plan bundles.",
+      "categoryLabel": "CATEGORY",
+      "categoryPlaceholder": "e.g. Core, Commerce, Supply, Operations",
+      "descriptionLabel": "DESCRIPTION",
+      "descriptionPlaceholder": "Brief description of the capabilities in this module...",
+      "activeLabel": "Active (available for bundling in commercial plans)"
+    },
+    "delete": {
+      "confirm": "Are you sure you want to delete module <name/> (<modkey/>)? This action cannot be undone. Modules included in active commercial plans cannot be deleted.",
+      "deleting": "Deleting..."
+    },
+    "toast": {
+      "keyAndNameRequired": "Module key and name are required.",
+      "keyTooLong": "Module key cannot exceed 6 characters.",
+      "updated": "Module \"{{name}}\" updated successfully.",
+      "created": "Platform module \"{{name}}\" created successfully.",
+      "deleted": "Module \"{{name}}\" deleted successfully.",
+      "saveFailed": "Failed to save module.",
+      "deleteFailed": "Failed to delete module."
+    }
+  }
+}
