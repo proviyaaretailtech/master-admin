@@ -14,7 +14,6 @@ describe("usePermissions Hook (Fail-Secure & Super Admin Bypass)", () => {
           token: user ? "mock-token" : null,
           loading: false,
           login: vi.fn(),
-          register: vi.fn(),
           logout: vi.fn(),
         }}
       >

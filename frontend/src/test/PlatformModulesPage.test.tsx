@@ -90,7 +90,6 @@ const renderComponent = (user: any = mockAdminUser) => {
         token: "fake-jwt",
         loading: false,
         login: vi.fn(),
-        register: vi.fn(),
         logout: vi.fn(),
       }}
     >

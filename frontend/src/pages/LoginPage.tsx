@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/use-auth";
 import { AlertTriangle } from "lucide-react";
 
@@ -151,16 +151,9 @@ export const LoginPage: React.FC = () => {
             )}
           </button>
 
-          {/* Sign Up Redirect */}
-          <div className="text-center pt-2">
-            <span className="text-xs text-slate-500">Don&apos;t have an account? </span>
-            <Link
-              to="/register"
-              className="text-xs font-semibold text-[#65D000] hover:underline hover:text-[#55b300]"
-            >
-              Sign Up
-            </Link>
-          </div>
+          <p className="text-center pt-2 text-xs text-slate-500">
+            Access is by invitation from a platform administrator.
+          </p>
         </form>
       </div>
     </div>

@@ -88,7 +88,6 @@ describe("RolesPermissionsPage Component (Feature-by-Feature Access Control with
           token: "fake-token",
           loading: false,
           login: vi.fn(),
-          register: vi.fn(),
           logout: vi.fn(),
         }}
       >

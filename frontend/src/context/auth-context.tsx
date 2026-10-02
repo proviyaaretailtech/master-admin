@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from "react";
-import { authApi, RegisterPayload } from "../api";
+import { authApi } from "../api";
 import { User } from "../@types";
 
 export interface AuthContextType {
@@ -7,7 +7,6 @@ export interface AuthContextType {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<{ error: Error | null; user?: User }>;
-  register: (data: RegisterPayload) => Promise<{ error: Error | null; user?: User }>;
   logout: () => Promise<void>;
 }
 
@@ -58,21 +57,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (data: RegisterPayload) => {
-    try {
-      const response = await authApi.register(data);
-      const { user: registeredUser, token: authToken } = response;
-      localStorage.setItem("token", authToken);
-      setToken(authToken);
-      setUser(registeredUser);
-      return { error: null, user: registeredUser };
-    } catch (err: any) {
-      return {
-        error: err instanceof Error ? err : new Error(err?.message || "Failed to create account"),
-      };
-    }
-  };
-
   const logout = async () => {
     try {
       await authApi.logout();
@@ -92,7 +76,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         loading,
         login,
-        register,
         logout,
       }}
     >

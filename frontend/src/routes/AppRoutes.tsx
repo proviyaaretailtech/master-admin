@@ -1,7 +1,6 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { LoginPage } from "../pages/LoginPage";
-import { RegisterPage } from "../pages/RegisterPage";
 import { DashboardPage } from "../pages/DashboardPage";
 import { ProfilePage } from "../pages/ProfilePage";
 import { UsersManagementPage } from "../pages/UsersManagementPage";
@@ -28,7 +27,6 @@ export const AppRoutes: React.FC = () => {
       {/* PUBLIC AUTHENTICATION ROUTES                                    */}
       {/* ============================================================== */}
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
 
       {/* ============================================================== */}
       {/* PROTECTED ROUTES (AUTHENTICATED ONLY)                          */}

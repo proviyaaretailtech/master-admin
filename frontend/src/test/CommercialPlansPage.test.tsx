@@ -43,7 +43,6 @@ const renderWithProviders = (ui: React.ReactElement) => {
         token: "fake-token",
         loading: false,
         login: vi.fn(),
-        register: vi.fn(),
         logout: vi.fn(),
       }}
     >
