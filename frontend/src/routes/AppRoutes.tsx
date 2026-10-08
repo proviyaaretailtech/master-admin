@@ -14,6 +14,26 @@ import { CommercialPacksPage } from "../pages/CommercialPacksPage";
 import { PackEditorPage } from "../pages/PackEditorPage";
 import { CommercialAddonsPage } from "../pages/CommercialAddonsPage";
 import { AddonEditorPage } from "../pages/AddonEditorPage";
+import { MasterDashboardPage } from "../pages/master/MasterDashboardPage";
+import { OrganizationsPage } from "../pages/master/OrganizationsPage";
+import { Organization360OpsPage } from "../pages/master/Organization360OpsPage";
+import { ChangePlanPage } from "../pages/master/ChangePlanPage";
+import { InvitationsPage } from "../pages/master/InvitationsPage";
+import { RidersPage } from "../pages/master/RidersPage";
+import { RiderPayPage } from "../pages/master/RiderPayPage";
+import { CommissionRulesPage } from "../pages/master/CommissionRulesPage";
+import { OrdersPage, Order360Page } from "../pages/master/OrdersPage";
+import { DispatchBoardPage } from "../pages/master/DispatchBoardPage";
+import { SettlementsPayoutsPage } from "../pages/master/SettlementsPayoutsPage";
+import { FinanceControlPage } from "../pages/master/FinanceControlPage";
+import { AuditViewerPage } from "../pages/master/AuditViewerPage";
+import {
+  IntegrationsPage,
+  CrmIntegrationPage,
+  CmsIntegrationPage,
+} from "../pages/master/IntegrationsPage";
+import { ApiWebhooksPage } from "../pages/master/ApiWebhooksPage";
+import { FEAT } from "../lib/master-features";
 import { DomainPlaceholderPage } from "../pages/DomainPlaceholderPage";
 import { DashboardLayout } from "../layouts/DashboardLayout";
 import { ProtectedRoute } from "../components/common/ProtectedRoute";
@@ -36,10 +56,11 @@ export const AppRoutes: React.FC = () => {
         {/* All protected routes use the unified DashboardLayout */}
         <Route element={<DashboardLayout />}>
           {/* Main Dashboard / Onboarding System (matches screenshot 1) */}
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/overview" element={<DashboardPage />} />
-          <Route path="/organizations" element={<DashboardPage />} />
+          <Route path="/" element={<MasterDashboardPage />} />
+          <Route path="/dashboard" element={<MasterDashboardPage />} />
+          <Route path="/overview" element={<MasterDashboardPage />} />
+          {/* The partner onboarding pipeline view moved off /organizations */}
+          <Route path="/organizations/pipeline" element={<DashboardPage />} />
 
           {/* User Account / My Profile (matches screenshot 2 dropdown destination) */}
           <Route path="/profile" element={<ProfilePage />} />
@@ -169,7 +190,7 @@ export const AppRoutes: React.FC = () => {
                 featureId="feat_audit_compliance"
                 featureNameKey="nav.feature.auditLogs"
               >
-                <DomainPlaceholderPage />
+                <AuditViewerPage />
               </PermissionRoute>
             }
           />
@@ -328,7 +349,6 @@ export const AppRoutes: React.FC = () => {
           <Route path="/locations" element={<DomainPlaceholderPage />} />
           <Route path="/departments" element={<DomainPlaceholderPage />} />
           <Route path="/employees" element={<DomainPlaceholderPage />} />
-          <Route path="/invitations" element={<DomainPlaceholderPage />} />
 
           {/* Commercials Domain: Plans, Packs, Add-ons, Subscriptions, Entitlements, Usage, Billing */}
           <Route
@@ -493,6 +513,200 @@ export const AppRoutes: React.FC = () => {
             }
           />
           <Route path="/commercials/:subdomain" element={<DomainPlaceholderPage />} />
+
+          {/* ===== Master operations (permission-gated) ===== */}
+          <Route
+            path="/organizations"
+            element={
+              <PermissionRoute
+                featureId={FEAT.ORG_OPS.id}
+                actionKey={FEAT.ORG_OPS.view}
+                featureNameKey="nav.feature.organizations"
+              >
+                <OrganizationsPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/organizations/:id/360"
+            element={
+              <PermissionRoute
+                featureId={FEAT.ORG_OPS.id}
+                actionKey={FEAT.ORG_OPS.view}
+                featureNameKey="nav.feature.organizations"
+              >
+                <Organization360OpsPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/organizations/:id/change-plan"
+            element={
+              <PermissionRoute
+                featureId={FEAT.SUBSCRIPTION.id}
+                actionKey={FEAT.SUBSCRIPTION.plan}
+                featureNameKey="nav.feature.changePlan"
+              >
+                <ChangePlanPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/invitations"
+            element={
+              <PermissionRoute
+                featureId={FEAT.USERS.id}
+                actionKey={FEAT.USERS.view}
+                featureNameKey="nav.feature.invitations"
+              >
+                <InvitationsPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/riders"
+            element={
+              <PermissionRoute
+                featureId={FEAT.RIDERS.id}
+                actionKey={FEAT.RIDERS.view}
+                featureNameKey="nav.feature.riders"
+              >
+                <RidersPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/rider-pay"
+            element={
+              <PermissionRoute
+                featureId={FEAT.RIDER_PAY.id}
+                actionKey={FEAT.RIDER_PAY.view}
+                featureNameKey="nav.feature.riderPay"
+              >
+                <RiderPayPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/commission-rules"
+            element={
+              <PermissionRoute
+                featureId={FEAT.COMMISSION.id}
+                actionKey={FEAT.COMMISSION.view}
+                featureNameKey="nav.feature.commission"
+              >
+                <CommissionRulesPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <PermissionRoute
+                featureId={FEAT.ORDERS.id}
+                actionKey={FEAT.ORDERS.view}
+                featureNameKey="nav.feature.orders"
+              >
+                <OrdersPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/orders/:id"
+            element={
+              <PermissionRoute
+                featureId={FEAT.ORDERS.id}
+                actionKey={FEAT.ORDERS.view}
+                featureNameKey="nav.feature.orders"
+              >
+                <Order360Page />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/dispatch"
+            element={
+              <PermissionRoute
+                featureId={FEAT.DISPATCH.id}
+                actionKey={FEAT.DISPATCH.view}
+                featureNameKey="nav.feature.dispatch"
+              >
+                <DispatchBoardPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/finance"
+            element={
+              <PermissionRoute
+                featureId={FEAT.FINANCE.id}
+                actionKey={FEAT.FINANCE.view}
+                featureNameKey="nav.feature.finance"
+              >
+                <FinanceControlPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/finance/settlements"
+            element={
+              <PermissionRoute
+                featureId={FEAT.FINANCE.id}
+                actionKey={FEAT.FINANCE.view}
+                featureNameKey="nav.feature.settlements"
+              >
+                <SettlementsPayoutsPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/integrations"
+            element={
+              <PermissionRoute
+                featureId={FEAT.INTEGRATIONS.id}
+                actionKey={FEAT.INTEGRATIONS.view}
+                featureNameKey="nav.feature.integrations"
+              >
+                <IntegrationsPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/integrations/crm"
+            element={
+              <PermissionRoute
+                featureId={FEAT.INTEGRATIONS.id}
+                actionKey={FEAT.INTEGRATIONS.view}
+                featureNameKey="nav.feature.crm"
+              >
+                <CrmIntegrationPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/integrations/cms"
+            element={
+              <PermissionRoute
+                featureId={FEAT.INTEGRATIONS.id}
+                actionKey={FEAT.INTEGRATIONS.view}
+                featureNameKey="nav.feature.cms"
+              >
+                <CmsIntegrationPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/developer/api"
+            element={
+              <PermissionRoute
+                featureId={FEAT.API.id}
+                actionKey={FEAT.API.view}
+                featureNameKey="nav.feature.apiWebhooks"
+              >
+                <ApiWebhooksPage />
+              </PermissionRoute>
+            }
+          />
           <Route path="/platform-core" element={<DomainPlaceholderPage />} />
           <Route path="/commerce-engine" element={<DomainPlaceholderPage />} />
           <Route path="/inventory-supply" element={<DomainPlaceholderPage />} />

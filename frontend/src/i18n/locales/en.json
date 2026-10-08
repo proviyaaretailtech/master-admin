@@ -93,7 +93,8 @@
       "yearsAgo_one": "{{count}} year ago",
       "yearsAgo_other": "{{count}} years ago"
     },
-    "unassigned": "Unassigned"
+    "unassigned": "Unassigned",
+    "never": "Never"
   },
   "status": {
     "draft": "Draft",
@@ -110,7 +111,49 @@
     "legacy": "Legacy",
     "online_ready": "Online Ready",
     "draft_mode": "Draft Mode",
-    "under_review": "Under Review"
+    "under_review": "Under Review",
+    "accepted": "Accepted",
+    "revoked": "Revoked",
+    "expired": "Expired",
+    "confirmed": "Confirmed",
+    "paid": "Paid",
+    "failed": "Failed",
+    "disabled": "Disabled",
+    "enabled": "Enabled",
+    "archived": "Archived",
+    "new": "New",
+    "in_billing": "In billing",
+    "sent_to_kitchen": "Sent to kitchen",
+    "ready": "Ready",
+    "awaiting_payment": "Awaiting payment",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled",
+    "created": "Created",
+    "offered": "Offered",
+    "assigned": "Assigned",
+    "at_pickup": "At pickup",
+    "picked_up": "Picked up",
+    "at_drop": "At drop",
+    "exception": "Exception",
+    "completed": "Completed",
+    "processing": "Processing",
+    "success": "Success",
+    "queued": "Queued",
+    "retrying": "Retrying",
+    "settled": "Settled",
+    "resolved": "Resolved",
+    "ok": "OK",
+    "matched": "Matched",
+    "mismatch": "Mismatch",
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "submitted": "Submitted",
+    "verification_pending": "Verification pending",
+    "documents_expired": "Documents expired",
+    "disputed": "Disputed",
+    "connected": "Connected",
+    "error": "Error",
+    "captured": "Captured"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -303,7 +346,18 @@
       "operations": "Operations",
       "support": "Support",
       "developer": "Developer",
-      "audit": "Audit"
+      "audit": "Audit",
+      "orders": "Orders",
+      "dispatch": "Dispatch board",
+      "riders": "Riders",
+      "riderPay": "Rider pay & policy",
+      "commission": "Commission rules",
+      "financeControl": "Finance control",
+      "settlements": "Settlements & payouts",
+      "integrationCentre": "Integration centre",
+      "crm": "CRM integration",
+      "cms": "CMS integration",
+      "apiWebhooks": "API & webhooks"
     },
     "feature": {
       "usersManagement": "Users Management",
@@ -321,7 +375,21 @@
       "createAddon": "Create Add-on Option",
       "editAddon": "Edit Commercial Add-on",
       "createPlan": "Create Plan",
-      "editPlan": "Edit Plan"
+      "editPlan": "Edit Plan",
+      "organizations": "Organizations",
+      "changePlan": "Change plan",
+      "invitations": "Invitations",
+      "riders": "Riders",
+      "riderPay": "Rider pay & policy",
+      "commission": "Commission rules",
+      "orders": "Orders",
+      "dispatch": "Dispatch board",
+      "finance": "Finance control",
+      "settlements": "Settlements & payouts",
+      "integrations": "Integration centre",
+      "crm": "CRM integration",
+      "cms": "CMS integration",
+      "apiWebhooks": "API & webhooks"
     },
     "placeholder": {
       "eyebrow": "SYSTEM DOMAIN MODULE",
@@ -330,6 +398,11 @@
       "workspace": "{{name}} Workspace",
       "ready": "Ready for data models, API integrations, and specialized store controls.",
       "returnToPipeline": "Return to Onboarding Pipeline"
+    },
+    "sections": {
+      "operations": "Operations",
+      "finance": "Finance",
+      "integrations": "Integrations & API"
     }
   },
   "auth": {
@@ -370,7 +443,7 @@
     },
     "profile": {
       "eyebrow": "ACCOUNT MANAGEMENT",
-      "title": "Super Admin Profile",
+      "title": "Profile",
       "intro": "View your store administrator credentials, manage your personal contact details, and inspect system access.",
       "superAdminBadge": "Super Admin",
       "supabaseConnected": "Supabase Connected",
@@ -405,7 +478,41 @@
         "lastNameRequired": "Last name is required.",
         "saved": "Profile information updated successfully!",
         "saveFailed": "Failed to update profile. Please try again."
+      },
+      "open": "Open my profile"
+    },
+    "group": {
+      "platform": {
+        "title": "Platform configuration",
+        "description": "Plans, modules, roles, integrations and API access for the whole platform."
+      },
+      "business": {
+        "title": "Business configuration",
+        "description": "Organizations, commission and rider pay rules."
+      },
+      "location": {
+        "title": "Location configuration",
+        "description": "Locations and who is invited to run them."
+      },
+      "security": {
+        "title": "Security",
+        "description": "Security policies, user accounts and the audit trail."
       }
+    },
+    "link": {
+      "plans": "Commercial plans",
+      "modules": "Platform modules",
+      "roles": "Roles & permissions",
+      "integrations": "Integration centre",
+      "api": "API & webhooks",
+      "organizations": "Organizations",
+      "commission": "Commission rules",
+      "riderPay": "Rider pay & policy",
+      "locations": "Locations",
+      "invitations": "Invitations",
+      "policies": "Security policies",
+      "users": "Users",
+      "audit": "Audit log"
     }
   },
   "addons": {
@@ -1508,6 +1615,635 @@
       "deleted": "Module \"{{name}}\" deleted successfully.",
       "saveFailed": "Failed to save module.",
       "deleteFailed": "Failed to delete module."
+    }
+  },
+  "m": {
+    "nav": {
+      "label": "Main navigation"
+    },
+    "state": {
+      "denied": "You do not have permission to view this. Ask your administrator for access.",
+      "empty": "Nothing to show yet.",
+      "pageOf": "Page {{page}} of {{total}}",
+      "pagination": "Pagination",
+      "providerTitle": "Provider not configured",
+      "providerBody": "This action needs an external provider that is not connected yet. Nothing was changed. Records, mappings and logs still work."
+    },
+    "dialog": {
+      "reasonTooShort": "Please give a reason of at least 3 characters."
+    },
+    "makerChecker": "Needs a different approver",
+    "topbar": {
+      "orgSwitcher": "Organization",
+      "locationSwitcher": "Location",
+      "allOrgs": "All organizations",
+      "allLocations": "All locations",
+      "health": "System health",
+      "healthState": {
+        "ok": "All systems normal",
+        "degraded": "Degraded",
+        "down": "Down",
+        "unknown": "Unknown"
+      },
+      "healthItem": {
+        "api": "API",
+        "db": "Database",
+        "queue": "Queue",
+        "sync": "Sync"
+      },
+      "env": {
+        "production": "Production",
+        "staging": "Staging",
+        "development": "Development"
+      },
+      "notifications": "Notifications ({{count}} need attention)",
+      "pendingApprovals": "Pending approvals",
+      "openExceptions": "Open exceptions",
+      "helpShortcuts": "Shortcuts: press / or Ctrl/Cmd+K to search.",
+      "profileMenu": "Profile menu"
+    },
+    "search": {
+      "title": "Search everything",
+      "label": "Search",
+      "open": "Open search",
+      "placeholder": "Organizations, riders, orders, users…",
+      "recent": "Recent searches",
+      "results": "Search results",
+      "none": "No matches found.",
+      "group": {
+        "organizations": "Organizations",
+        "riders": "Riders",
+        "orders": "Orders",
+        "users": "Users",
+        "payouts": "Payouts",
+        "settlements": "Settlements"
+      }
+    },
+    "dashboard": {
+      "title": "Operations dashboard",
+      "subtitle": "Live numbers from the platform. Refreshes every {{seconds}} seconds.",
+      "refresh": "Refresh now",
+      "kpi": {
+        "ordersToday": "Orders today",
+        "gmv": "Sales value (GMV)",
+        "ridersOnline": "Riders online",
+        "activeDeliveries": "Active deliveries",
+        "failedDeliveries": "Failed deliveries",
+        "lateDeliveries": "Late deliveries",
+        "pendingApprovals": "Pending approvals",
+        "openExceptions": "Open exceptions",
+        "settlementsPending": "Settlements pending",
+        "payoutsPending": "Payouts pending",
+        "failedPayments": "Failed payments"
+      }
+    },
+    "orgs": {
+      "title": "Organizations",
+      "subtitle": "Create, review and control every organization on the platform.",
+      "create": "Create organization",
+      "created": "Organization created. The owner invitation has been sent.",
+      "pipelineLink": "Partner onboarding pipeline",
+      "searchPlaceholder": "Name, email or phone",
+      "empty": "No organizations match.",
+      "domain": "Business type",
+      "created_at": "Created",
+      "wizard": {
+        "title": "Create organization",
+        "steps": "Steps",
+        "step": {
+          "business": "Business",
+          "plan": "Plan",
+          "owner": "Owner",
+          "location": "Location",
+          "ordering": "Ordering"
+        },
+        "businessName": "Business name",
+        "domain": "Business type",
+        "plan": "Plan",
+        "planPlaceholder": "Choose a plan",
+        "ownerEmail": "Owner email",
+        "ownerHint": "We send an invitation to this address. The owner sets their own password.",
+        "locationName": "Location {{n}} name",
+        "locationCity": "City",
+        "addLocation": "Add another location",
+        "removeLocation": "Remove location {{n}}",
+        "orderingOpen": "Open for orders when created",
+        "orderingHint": "Leave off to let the owner finish setup first. You can pause or resume ordering later.",
+        "summary": "Creating {{name}} on plan {{plan}}, owner {{owner}}.",
+        "create": "Create organization"
+      }
+    },
+    "org360": {
+      "eyebrow": "Organization 360",
+      "title": "Organization",
+      "tabs": "Organization sections",
+      "tab": {
+        "overview": "Overview",
+        "members": "Members",
+        "locations": "Locations",
+        "subscription": "Subscription & entitlements",
+        "ordering": "Ordering",
+        "orders": "Orders",
+        "audit": "Audit"
+      },
+      "openOrders": "Open orders",
+      "orders30d": "Orders (30 days)",
+      "gmv30d": "Sales (30 days)",
+      "created": "Created",
+      "role": "Role",
+      "city": "City",
+      "subscription": "Subscription",
+      "plan": "Plan",
+      "since": "Since",
+      "entitlements": "Entitlements",
+      "noEntitlements": "No entitlements to show.",
+      "noMembers": "No members yet.",
+      "noLocations": "No locations yet.",
+      "noOrders": "No orders yet.",
+      "noAudit": "No audit entries yet.",
+      "allOrders": "See all orders",
+      "fullAudit": "Open the full audit log",
+      "orderingTitle": "Online ordering",
+      "orderingOpen": "This organization is accepting orders.",
+      "orderingPaused": "Ordering is paused for this organization.",
+      "pauseOrdering": "Pause ordering",
+      "resumeOrdering": "Resume ordering",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate",
+      "archive": "Archive",
+      "restore": "Restore",
+      "updated": "Done. The change has been recorded in the audit log.",
+      "dialog": {
+        "suspend": {
+          "title": "Suspend this organization?",
+          "body": "{{name}} will lose access until it is reactivated. Say why.",
+          "confirm": "Suspend"
+        },
+        "reactivate": {
+          "title": "Reactivate this organization?",
+          "body": "{{name}} will be able to work again. Say why.",
+          "confirm": "Reactivate"
+        },
+        "archive": {
+          "title": "Archive this organization?",
+          "body": "{{name}} will be archived. This is blocked while it has open orders. Say why.",
+          "confirm": "Archive"
+        },
+        "restore": {
+          "title": "Restore this organization?",
+          "body": "{{name}} will be brought back from the archive. Say why.",
+          "confirm": "Restore"
+        },
+        "ordering": {
+          "title": "Change ordering?",
+          "body": "This changes whether {{name}} can take new orders. Say why.",
+          "confirm": "Confirm"
+        }
+      },
+      "membersActive": "Active members",
+      "membersTotal": "All members",
+      "manageMembers": "Manage invitations"
+    },
+    "plan": {
+      "title": "Change plan",
+      "subtitle": "Move this organization to another plan. Entitlements follow the new plan.",
+      "current": "Current plan",
+      "none": "No plan assigned.",
+      "new": "New plan",
+      "choose": "Choose a plan",
+      "price": "Price: {{price}}",
+      "entitlementsNow": "Entitlements today",
+      "submit": "Change plan",
+      "confirmTitle": "Confirm plan change",
+      "confirmBody": "The organization will move to plan {{plan}}. Say why.",
+      "confirm": "Change plan"
+    },
+    "invitations": {
+      "title": "Invitations",
+      "subtitle": "Invite people to an organization and track who has joined.",
+      "invite": "Invite someone",
+      "send": "Send invitation",
+      "sent": "Invitation sent.",
+      "resent": "Invitation re-sent to {{email}}.",
+      "revoked": "Invitation revoked.",
+      "empty": "No invitations.",
+      "organization": "Organization",
+      "role": "Role",
+      "chooseOrg": "Choose an organization",
+      "chooseRole": "Choose a role",
+      "resend": "Resend",
+      "resendFor": "Resend invitation to {{email}}",
+      "revoke": "Revoke",
+      "revokeFor": "Revoke invitation for {{email}}",
+      "revokeTitle": "Revoke this invitation?",
+      "revokeBody": "{{email}} will no longer be able to join with this invitation."
+    },
+    "riders": {
+      "title": "Riders",
+      "subtitle": "Approve, review and manage delivery riders and their cash deposits.",
+      "tabs": "Rider sections",
+      "tab": {
+        "riders": "Riders",
+        "deposits": "Cash deposits"
+      },
+      "searchPlaceholder": "Name or phone",
+      "empty": "No riders match.",
+      "rider": "Rider",
+      "city": "City",
+      "kyc": "KYC",
+      "online": "Online",
+      "drawerTitle": "Rider details",
+      "deliveries": "Deliveries",
+      "cashInHand": "Cash in hand",
+      "cashLimit": "Cash limit",
+      "wallet": "Wallet",
+      "documents": "Documents",
+      "history": "History",
+      "action": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "suspend": "Suspend",
+        "reactivate": "Reactivate"
+      },
+      "dialog": {
+        "approve": {
+          "title": "Approve this rider?",
+          "body": "{{name}} will be able to go online and take deliveries. Say why."
+        },
+        "reject": {
+          "title": "Reject this rider?",
+          "body": "{{name}}'s application will be rejected. Say why."
+        },
+        "suspend": {
+          "title": "Suspend this rider?",
+          "body": "{{name}} will not be able to take deliveries. Say why."
+        },
+        "reactivate": {
+          "title": "Reactivate this rider?",
+          "body": "{{name}} will be able to take deliveries again. Say why."
+        }
+      }
+    },
+    "deposits": {
+      "title": "Cash deposits",
+      "empty": "No cash deposits.",
+      "confirm": "Confirm",
+      "reject": "Reject",
+      "note": "Note",
+      "confirmed": "Deposit confirmed.",
+      "rejected": "Deposit rejected.",
+      "dialog": {
+        "confirm": {
+          "title": "Confirm this deposit?",
+          "body": "Confirm that the cash from {{name}} was received."
+        },
+        "reject": {
+          "title": "Reject this deposit?",
+          "body": "The cash from {{name}} was not received. A note is required."
+        }
+      }
+    },
+    "riderPay": {
+      "title": "Rider pay & policy",
+      "subtitle": "Set the pay rate card and rules per city. Type amounts in rupees.",
+      "city": "City",
+      "noCities": "No cities are set up yet.",
+      "rateCard": "Rate card",
+      "policy": "Policy",
+      "rupeesHint": "Amounts are in rupees (for example 12.50).",
+      "base": "Base pay (₹)",
+      "perKm": "Pay per km (₹)",
+      "minPay": "Minimum pay per delivery (₹)",
+      "active": "Rate card is active",
+      "noRateCard": "No rate card for this city yet. Saving will create one.",
+      "noPolicy": "No policy for this city yet. Saving will create one.",
+      "withdrawMin": "Minimum withdrawal (₹)",
+      "withdrawMax": "Maximum withdrawal (₹)",
+      "withdrawPerDay": "Withdrawals per day",
+      "cashLimit": "Default cash limit (₹)",
+      "waitSeconds": "Wait before unavailable (seconds)",
+      "invalidAmount": "Enter valid numbers (rupees with at most 2 decimals).",
+      "saved": "Saved."
+    },
+    "commission": {
+      "title": "Commission rules",
+      "subtitle": "What the platform earns on orders. Rules are versioned: an edit creates a new version and keeps the old one in history.",
+      "create": "New rule",
+      "editVersion": "Edit (creates a new version)",
+      "versionNote": "Saving deactivates the current rule and creates a new version. History is kept.",
+      "empty": "No commission rules yet.",
+      "scope": "Applies to",
+      "allOrgs": "All organizations",
+      "allChannels": "All channels",
+      "organization": "Organization",
+      "channel": "Channel",
+      "channelHint": "Leave empty for all channels.",
+      "percent": "Percent",
+      "fixed": "Fixed",
+      "min": "Minimum",
+      "max": "Maximum",
+      "percentInput": "Percent (%)",
+      "fixedInput": "Fixed amount (₹)",
+      "minInput": "Minimum (₹)",
+      "maxInput": "Maximum (₹)",
+      "deactivate": "Deactivate",
+      "deactivateTitle": "Deactivate this rule?",
+      "deactivateBody": "The rule stops applying to new orders. It stays in history.",
+      "created": "Rule created.",
+      "versioned": "New version saved. The old version is deactivated.",
+      "deactivated": "Rule deactivated.",
+      "noCap": "No cap",
+      "ch": {
+        "dine_in": "Dine-in",
+        "delivery": "Delivery",
+        "pickup": "Pickup",
+        "online": "Online",
+        "swiggy": "Swiggy",
+        "zomato": "Zomato",
+        "other": "Other"
+      }
+    },
+    "orders": {
+      "title": "Orders",
+      "subtitle": "Every order on the platform. Read-only: open one to see its full story.",
+      "searchPlaceholder": "Order number or customer",
+      "number": "Order",
+      "organization": "Organization",
+      "channel": "Channel",
+      "from": "From",
+      "to": "To",
+      "empty": "No orders match.",
+      "detail": "Order",
+      "detailTitle": "Order {{number}}",
+      "payment": "Payment",
+      "delivery": "Delivery",
+      "customer": "Customer",
+      "items": "Items",
+      "timeline": "Timeline",
+      "noTimeline": "No events recorded.",
+      "trace": "Raw order trace"
+    },
+    "dispatch": {
+      "title": "Dispatch board",
+      "subtitle": "Delivery jobs by state. Refreshes every 30 seconds.",
+      "board": "Delivery jobs by state",
+      "empty": "No delivery jobs.",
+      "other": "Other",
+      "unassigned": "No rider yet",
+      "jobTitle": "Delivery {{id}}",
+      "rider": "Rider",
+      "pickup": "Pickup",
+      "drop": "Drop",
+      "events": "Job events",
+      "noEvents": "No events yet.",
+      "reassign": "Reassign",
+      "cancel": "Cancel delivery",
+      "resolve": "Resolve exception",
+      "outcome": "Outcome",
+      "outcomes": {
+        "resolved": "Resolved",
+        "reassigned": "Reassigned",
+        "cancelled": "Cancelled",
+        "resume": "Resume delivery",
+        "reassign": "Reassign to another rider",
+        "return": "Return to restaurant",
+        "fail": "Mark as failed",
+        "cancel": "Cancel delivery"
+      },
+      "dialog": {
+        "reassign": {
+          "title": "Reassign this delivery?",
+          "body": "The current rider is removed and the job goes back out for assignment. Say why."
+        },
+        "cancel": {
+          "title": "Cancel this delivery?",
+          "body": "The delivery job is cancelled. Say why."
+        },
+        "resolve": {
+          "title": "Resolve exception"
+        }
+      },
+      "done": {
+        "reassign": "Delivery reassigned.",
+        "cancel": "Delivery cancelled.",
+        "resolve": "Exception resolved."
+      },
+      "cancelCode": "Cancel reason",
+      "cancelCodes": {
+        "restaurant_rejected": "Restaurant rejected",
+        "restaurant_timed_out": "Restaurant timed out",
+        "customer_cancelled": "Customer cancelled",
+        "other": "Other"
+      }
+    },
+    "settlements": {
+      "pageTitle": "Settlements & payouts",
+      "subtitle": "Run settlements, approve them and mark payouts paid. The person who creates an item cannot approve it.",
+      "title": "Settlements",
+      "empty": "No settlements yet.",
+      "run": "Run settlement",
+      "periodStart": "Period start",
+      "periodEnd": "Period end",
+      "period": "Period",
+      "net": "Net",
+      "approve": "Approve",
+      "approveTitle": "Approve this settlement?",
+      "approveBody": "You approve a net amount of {{amount}}. This creates payouts.",
+      "ran": "Settlement created for the period.",
+      "approved": "Settlement approved."
+    },
+    "payouts": {
+      "title": "Payouts",
+      "empty": "No payouts.",
+      "payee": "Payee",
+      "reference": "Payment reference",
+      "approve": "Approve",
+      "approveTitle": "Approve this payout?",
+      "approveBody": "You approve a payout of {{amount}}.",
+      "markPaid": "Mark as paid",
+      "paidBody": "Enter the bank or UPI reference of the transfer you made. Money is not moved from here.",
+      "approved": "Payout approved.",
+      "paid": "Payout marked as paid."
+    },
+    "finance": {
+      "title": "Finance control",
+      "subtitle": "Money collected, earned, owed and paid. Posted entries are never deleted.",
+      "tab": {
+        "overview": "Overview",
+        "payments": "Payments",
+        "ledger": "Ledger",
+        "reconciliation": "Reconciliation",
+        "riderEarnings": "Rider earnings"
+      },
+      "kpi": {
+        "collected": "Collected",
+        "collectedHint": "Received from customers",
+        "earned": "Earned",
+        "earnedHint": "Platform earnings",
+        "owed": "Owed",
+        "owedHint": "Still to be paid out",
+        "paid": "Paid",
+        "paidHint": "Already paid out"
+      },
+      "toSettlements": "Go to settlements & payouts",
+      "noPayments": "No payments recorded.",
+      "noLedger": "No ledger entries.",
+      "noRecon": "Nothing to reconcile.",
+      "noEarnings": "No rider earnings yet.",
+      "method": "Method",
+      "orderId": "Order ID",
+      "direction": "Direction",
+      "dir": {
+        "debit": "Debit",
+        "credit": "Credit"
+      },
+      "reconNote": "Read-only view. Differences are investigated, never edited here.",
+      "check": "Check",
+      "expected": "Expected",
+      "actual": "Actual",
+      "difference": "Difference"
+    },
+    "audit": {
+      "title": "Audit log",
+      "subtitle": "Who did what, and when. Open an entry to see what changed.",
+      "actor": "Actor",
+      "action": "Action",
+      "entity": "Entity",
+      "entityType": "Entity type",
+      "entityId": "Entity ID",
+      "empty": "No audit entries match.",
+      "detail": "Audit entry",
+      "diff": "Changes",
+      "field": "Field",
+      "before": "Before",
+      "after": "After",
+      "noDiff": "No before/after data was recorded."
+    },
+    "integrations": {
+      "title": {
+        "centre": "Integration centre",
+        "crm": "CRM integration",
+        "cms": "CMS integration"
+      },
+      "subtitle": "Registry of connected systems, field mappings and logs.",
+      "providerNote": "Connecting, testing and syncing a real provider needs that provider to be configured. Until then those actions say so honestly. Records, mappings and logs are real.",
+      "add": "Add integration",
+      "created": "Integration added.",
+      "empty": "No integrations yet.",
+      "detail": "Integration",
+      "category": "Category",
+      "provider": "Provider",
+      "lastSync": "Last sync",
+      "rotated": "Credentials rotated",
+      "cat": {
+        "crm": "CRM",
+        "cms": "CMS",
+        "payment": "Payments",
+        "messaging": "Messaging",
+        "other": "Other",
+        "payment_gateway": "Payment gateway",
+        "maps": "Maps",
+        "analytics": "Analytics"
+      },
+      "tab": {
+        "overview": "Overview",
+        "mappings": "Mappings",
+        "logs": "Logs"
+      },
+      "test": "Test connection",
+      "sync": "Sync now",
+      "enable": "Enable",
+      "disable": "Disable",
+      "rotate": "Rotate credentials",
+      "rotateTitle": "Rotate credentials?",
+      "rotateBody": "The rotation is recorded. The old credentials stop working once the provider accepts the new ones.",
+      "tested": "Connection test passed.",
+      "synced": "Sync started.",
+      "enabled": "Integration enabled.",
+      "disabled": "Integration disabled.",
+      "rotatedOk": "Credential rotation recorded.",
+      "noLogs": "No log entries.",
+      "noMappings": "No mappings yet.",
+      "mappingKind": "Kind",
+      "kind": {
+        "crm_field": "CRM field",
+        "cms_content": "CMS content",
+        "cms_placement": "CMS placement"
+      },
+      "source": "Source",
+      "target": "Target",
+      "addMapping": "Add mapping",
+      "removeMapping": "Remove mapping",
+      "mappingsSaved": "Mappings saved.",
+      "disableTitle": "Disable this integration?",
+      "disableBody": "Syncing stops until it is enabled again. Say why."
+    },
+    "api": {
+      "title": "API & webhooks",
+      "subtitle": "API keys for partners, webhook endpoints, delivery attempts and request logs.",
+      "tab": {
+        "apps": "API apps",
+        "webhooks": "Webhooks",
+        "deliveries": "Deliveries",
+        "logs": "API logs"
+      },
+      "apps": {
+        "create": "Create API app",
+        "name": "App name",
+        "empty": "No API apps yet.",
+        "prefix": "Key",
+        "lastUsed": "Last used",
+        "rotate": "Rotate key",
+        "revoke": "Revoke",
+        "dialog": {
+          "rotate": {
+            "title": "Rotate this key?",
+            "body": "A new key is created for {{name}} and the old one stops working. You will see the new key once."
+          },
+          "revoke": {
+            "title": "Revoke this app?",
+            "body": "{{name}} will stop working immediately. This cannot be undone."
+          }
+        }
+      },
+      "keyOnce": {
+        "title": "Your new API key",
+        "warning": "Copy this key now. It is shown only once and cannot be retrieved later.",
+        "label": "API key",
+        "copy": "Copy",
+        "copied": "Copied to clipboard.",
+        "stored": "I have stored this key somewhere safe."
+      },
+      "webhooks": {
+        "create": "Add webhook",
+        "url": "Endpoint URL",
+        "events": "Events",
+        "event": "Event",
+        "eventsHint": "Comma-separated, for example order.created, order.delivered",
+        "empty": "No webhooks yet.",
+        "test": "Send test",
+        "tested": "Test event sent.",
+        "disable": "Disable",
+        "disableTitle": "Disable this webhook?",
+        "disableBody": "No more events will be sent to this endpoint.",
+        "secretRef": "Signing secret name",
+        "secretRefHint": "The NAME of the secret in the vault, never the secret itself."
+      },
+      "deliveries": {
+        "empty": "No webhook deliveries.",
+        "attempts": "Attempts",
+        "response": "Response",
+        "retry": "Retry",
+        "replay": "Replay",
+        "retryDone": "Retry queued.",
+        "replayDone": "Replay queued."
+      },
+      "logs": {
+        "empty": "No API requests logged.",
+        "method": "Method",
+        "path": "Path",
+        "app": "App"
+      }
     }
   }
 }
