@@ -91,6 +91,8 @@ const renderComponent = (user: any = mockAdminUser) => {
         loading: false,
         login: vi.fn(),
         logout: vi.fn(),
+        logoutEverywhere: vi.fn(),
+        notice: null,
       }}
     >
       <MemoryRouter>

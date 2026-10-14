@@ -47,6 +47,8 @@ export function renderPage(
         loading: false,
         login: async () => ({ error: null }),
         logout: async () => {},
+        logoutEverywhere: async () => {},
+        notice: null,
       }}
     >
       <MemoryRouter initialEntries={[route]}>

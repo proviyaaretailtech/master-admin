@@ -1,5 +1,6 @@
-import axios from "axios";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { ApiError } from "./api-error";
+import { endSession, getAccessToken, refreshSession } from "./session";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
@@ -11,10 +12,10 @@ export const apiClient = axios.create({
   },
 });
 
-// Interceptor to attach custom JWT token from localStorage and log requests
+// Interceptor to attach the in-memory access token (lib/session.ts) and log requests
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -30,6 +31,37 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+/** Auth endpoints answer 401 for their own reasons (wrong password, bad reset link): never refresh on those. */
+const NO_REFRESH = /\/auth\/(login|refresh|logout|forgot-password|reset-password)$/;
+
+type RetriableConfig = InternalAxiosRequestConfig & { _authRetried?: boolean };
+
+/**
+ * A 401 means the access token expired (or was revoked). Refresh once (shared by every request that
+ * failed at the same time) and replay the request with the new token. If the refresh fails the session
+ * is over: endSession("expired") sends the person to sign-in with a "session ended" message.
+ */
+async function retryAfterRefresh(error: AxiosError): Promise<unknown> {
+  const config = error.config as RetriableConfig | undefined;
+  if (
+    error.response?.status !== 401 ||
+    !config ||
+    config._authRetried ||
+    NO_REFRESH.test(config.url ?? "") ||
+    !getAccessToken()
+  ) {
+    return null;
+  }
+  config._authRetried = true;
+  const token = await refreshSession();
+  if (!token) {
+    endSession("expired");
+    return null;
+  }
+  config.headers.Authorization = `Bearer ${token}`;
+  return { replay: await apiClient.request(config) };
+}
+
 // Interceptor to turn every failure into an ApiError (server text + errorCode + status).
 // Show it to people with localizeError(err) from "../i18n/errors" so it appears in their language.
 apiClient.interceptors.response.use(
@@ -39,7 +71,10 @@ apiClient.interceptors.response.use(
     }
     return response;
   },
-  (error) => {
+  async (error) => {
+    const retried = (await retryAfterRefresh(error)) as { replay: unknown } | null;
+    if (retried) return retried.replay;
+
     if (import.meta.env.DEV) {
       console.error(`[API Error] ${error.config?.url}:`, error.response?.data || error.message);
     }

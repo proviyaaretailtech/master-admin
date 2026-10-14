@@ -238,7 +238,14 @@
       "lastSuperAdminDelete": "The last active Super Administrator cannot be deleted.",
       "emailInUse": "This email address is already in use by another user.",
       "payloadTooLarge": "The data you sent is too large.",
-      "malformedRequest": "The request could not be understood."
+      "malformedRequest": "The request could not be understood.",
+      "sessionEnded": "Your session has ended. Please sign in again.",
+      "resetLinkInvalid": "This reset link is invalid or has expired. Request a new one.",
+      "samePassword": "Choose a password different from your current one.",
+      "weakPassword": "This password is too weak. Choose a longer, less common password.",
+      "resetFailed": "The password could not be changed. Request a new reset link and try again.",
+      "passwordTooShort": "The password must be at least {{min}} characters long.",
+      "tooManyResetAttempts": "Too many password reset attempts. Please try again in 15 minutes."
     },
     "withDetail": "{{summary}} ({{detail}})"
   },
@@ -415,14 +422,14 @@
       "operations": "Operations",
       "finance": "Finance",
       "integrations": "Integrations & API"
-    }
+    },
+    "signOutEverywhere": "Sign out everywhere"
   },
   "auth": {
     "title": "Super Admin",
     "emailLabel": "Email Address",
     "passwordLabel": "Password",
     "forgotPassword": "Forgot password?",
-    "forgotPasswordNotice": "Password reset link will be sent to your email address.",
     "attemptsRemaining_one": "Incorrect password. {{count}} attempt remaining.",
     "attemptsRemaining_other": "Incorrect password. {{count}} attempts remaining.",
     "signingIn": "Signing In...",
@@ -437,6 +444,30 @@
       "contactAdmin": "Please contact your master administrator to adjust your security role.",
       "goDashboard": "Go to Dashboard",
       "goBack": "Go Back"
+    },
+    "sessionEnded": "Your session has ended. Please sign in again.",
+    "passwordChanged": "Your password has been changed. Sign in with the new password.",
+    "forgot": {
+      "title": "Reset your password",
+      "intro": "Enter the email address of your Master Admin account. We will email you a link to set a new password.",
+      "submit": "Send reset link",
+      "sending": "Sending...",
+      "sent": "If that email belongs to a Master Admin account, a reset link is on its way. Check your inbox (the link works once and expires soon).",
+      "back": "Back to sign in"
+    },
+    "reset": {
+      "title": "Set a new password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "rule": "Use {{min}} to {{max}} characters.",
+      "tooShort": "Use at least {{min}} characters.",
+      "tooLong": "Use at most {{max}} characters.",
+      "mismatch": "The two passwords do not match.",
+      "submit": "Save new password",
+      "saving": "Saving...",
+      "invalidLink": "This reset link is invalid or has expired. Request a new one.",
+      "requestNew": "Request a new link",
+      "failed": "The password could not be changed. Please try again."
     }
   },
   "settings": {
@@ -483,7 +514,9 @@
         "authMechanism": "Authentication Mechanism",
         "authMechanismValue": "Custom JWT (HMAC-SHA256)",
         "accountCreated": "Account Created",
-        "signOut": "Sign Out of Admin Panel"
+        "signOut": "Sign Out of Admin Panel",
+        "signOutEverywhere": "Sign out on all devices",
+        "signOutEverywhereHint": "Ends every session of this account, on every browser and device."
       },
       "messages": {
         "firstNameTooShort": "First name must be at least 2 characters long.",

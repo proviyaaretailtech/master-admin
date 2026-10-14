@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { LoginPage } from "../pages/LoginPage";
+import { ResetPasswordPage } from "../pages/ResetPasswordPage";
 import { DashboardPage } from "../pages/DashboardPage";
 import { ProfilePage } from "../pages/ProfilePage";
 import { UsersManagementPage } from "../pages/UsersManagementPage";
@@ -50,6 +51,8 @@ export const AppRoutes: React.FC = () => {
       {/* PUBLIC AUTHENTICATION ROUTES                                    */}
       {/* ============================================================== */}
       <Route path="/login" element={<LoginPage />} />
+      {/* Opened from the emailed password reset link (recovery token in the URL fragment) */}
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* ============================================================== */}
       {/* PROTECTED ROUTES (AUTHENTICATED ONLY)                          */}

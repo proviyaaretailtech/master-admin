@@ -43,6 +43,8 @@ const authValue = {
   loading: false,
   login: vi.fn(async () => ({ error: null })),
   logout: vi.fn(async () => {}),
+  logoutEverywhere: vi.fn(async () => {}),
+  notice: null,
 };
 
 const renderLogin = () =>

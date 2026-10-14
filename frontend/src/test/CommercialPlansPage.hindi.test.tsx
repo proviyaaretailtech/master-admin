@@ -78,7 +78,15 @@ describe("a real screen switches to Hindi in place (Commercial Plans)", () => {
 
     render(
       <AuthContext.Provider
-        value={{ user: user as never, token: "t", loading: false, login: vi.fn(), logout: vi.fn() }}
+        value={{
+          user: user as never,
+          token: "t",
+          loading: false,
+          login: vi.fn(),
+          logout: vi.fn(),
+          logoutEverywhere: vi.fn(),
+          notice: null,
+        }}
       >
         <MemoryRouter>
           <CommercialPlansPage />

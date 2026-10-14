@@ -15,6 +15,7 @@ import {
   KeyRound,
   Calendar,
   LogOut,
+  MonitorSmartphone,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -23,7 +24,7 @@ import { useNavigate } from "react-router-dom";
 type ProfileError = { key: string } | { error: unknown };
 
 export const ProfilePage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, logoutEverywhere } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const f = useFormat();
@@ -93,6 +94,11 @@ export const ProfilePage: React.FC = () => {
 
   const handleSignOut = async () => {
     await logout();
+    navigate("/login");
+  };
+
+  const handleSignOutEverywhere = async () => {
+    await logoutEverywhere();
     navigate("/login");
   };
 
@@ -330,6 +336,18 @@ export const ProfilePage: React.FC = () => {
                 <LogOut className="w-3.5 h-3.5" />
                 <span>{t("settings.profile.access.signOut")}</span>
               </button>
+              <button
+                type="button"
+                onClick={handleSignOutEverywhere}
+                title={t("settings.profile.access.signOutEverywhereHint")}
+                className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-[#EF4444] border border-red-100 hover:bg-red-50 transition-colors cursor-pointer"
+              >
+                <MonitorSmartphone className="w-3.5 h-3.5" />
+                <span>{t("settings.profile.access.signOutEverywhere")}</span>
+              </button>
+              <p className="mt-1.5 text-center text-[11px] text-slate-400">
+                {t("settings.profile.access.signOutEverywhereHint")}
+              </p>
             </div>
           </div>
         </div>

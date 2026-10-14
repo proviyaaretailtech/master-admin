@@ -7,6 +7,7 @@ import {
   Globe,
   HelpCircle,
   LogOut,
+  MonitorSmartphone,
   Menu,
   Search,
   Settings as SettingsIcon,
@@ -48,7 +49,7 @@ const worst = (states: HealthState[]): HealthState =>
 export const Topbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, logoutEverywhere } = useAuth();
   const { roleName } = usePermissions();
   const { active: activeLanguage } = useLanguage();
   const scope = useMasterScope();
@@ -118,6 +119,11 @@ export const Topbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => 
 
   const handleSignOut = async () => {
     await logout();
+    navigate("/login");
+  };
+
+  const handleSignOutEverywhere = async () => {
+    await logoutEverywhere();
     navigate("/login");
   };
 
@@ -352,6 +358,14 @@ export const Topbar: React.FC<{ onOpenMenu: () => void }> = ({ onOpenMenu }) => 
               >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
                 {t("nav.signOut")}
+              </button>
+              <button
+                type="button"
+                onClick={handleSignOutEverywhere}
+                className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left font-semibold text-red-600 hover:bg-red-50/70"
+              >
+                <MonitorSmartphone className="h-4 w-4" aria-hidden="true" />
+                {t("nav.signOutEverywhere")}
               </button>
             </div>
           )}

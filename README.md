@@ -205,7 +205,7 @@ Use standard Conventional Commits:
 | `PORT` | Number | `8000` | Port on which Express server listens | Set to `8000` or any available local port. |
 | `NODE_ENV` | String | `development` | Runtime environment (`development`, `production`, `test`) | Use `development` locally. CI uses `test`. |
 | `BASE_PATH` | String | `/api` | Root prefix for all API routes | Kept as `/api` to standardise API endpoints. |
-| `CLIENT_ORIGIN` | String | `http://localhost:5173` | Allowed frontend origin for CORS | Set to your local Vite URL (`http://localhost:5173`) or production client domain. |
+| `CLIENT_ORIGIN` | String | `http://localhost:5173` | Allowed frontend origin(s) for CORS, comma separated. The first entry is also where password-reset emails link to (`<origin>/reset-password`) | Set to your local Vite URL (`http://localhost:5173`) or the production Master Admin URL. Add `<origin>/reset-password` to the Supabase Auth redirect allow-list. |
 | `SUPABASE_URL` | URL | - | Supabase project REST API endpoint | **Supabase Dashboard**: Go to **Project Settings** > **API** > copy **Project URL**. |
 | `SUPABASE_ANON_KEY` | String | - | Public anonymous API key for Supabase client | **Supabase Dashboard**: Go to **Project Settings** > **API** > copy **Project API Keys** (`anon` / `public`). |
 | `DATABASE_URL` | URI | - | Direct PostgreSQL connection string for SQL migrations | **Supabase Dashboard**: Go to **Project Settings** > **Database** > **Connection string** > select **URI** (Session or Transaction mode) and insert your database password. |
@@ -241,18 +241,16 @@ JWT_EXPIRES_IN=7d
 | Variable | Type | Default | Description | How to Obtain / Achieve |
 | :--- | :--- | :--- | :--- | :--- |
 | `VITE_API_BASE_URL` | String | `/api` | Base URL used by Axios/Fetch to reach backend API | Set to `/api` (proxied by Vite) or `http://localhost:8000/api` for direct local development. |
-| `VITE_SUPABASE_URL` | URL | - | Supabase REST URL for frontend Supabase client | Same as backend `SUPABASE_URL` (Supabase Dashboard > **Project Settings** > **API** > **Project URL**). |
-| `VITE_SUPABASE_ANON_KEY` | String | - | Public anonymous API key safe for browser use | Same as backend `SUPABASE_ANON_KEY` (Supabase Dashboard > **Project Settings** > **API** > `anon` public key). |
 
 #### Frontend `.env` Example:
 ```env
 # Backend API Base URL
 VITE_API_BASE_URL=/api
-
-# Supabase Client Credentials
-VITE_SUPABASE_URL=https://xyzcompany.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
+
+The browser talks only to the backend (no Supabase client or key in the frontend). Sessions: the backend
+returns a short-lived access token (kept in memory) and sets the Supabase refresh token as an httpOnly
+cookie on `/api/auth`; the app refreshes before expiry and once on a 401.
 
 ---
 

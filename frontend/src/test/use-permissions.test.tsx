@@ -15,6 +15,8 @@ describe("usePermissions Hook (Fail-Secure & Super Admin Bypass)", () => {
           loading: false,
           login: vi.fn(),
           logout: vi.fn(),
+          logoutEverywhere: vi.fn(),
+          notice: null,
         }}
       >
         {children}

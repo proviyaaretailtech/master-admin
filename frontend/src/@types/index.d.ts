@@ -22,6 +22,8 @@ export interface AuthResponse {
   message: string;
   user: User;
   token: string;
+  /** Access-token expiry, seconds since the epoch. */
+  expiresAt?: number | null;
 }
 
 export interface Pagination {
