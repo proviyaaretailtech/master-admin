@@ -24,8 +24,16 @@ import { usePermissions } from "../hooks/use-permissions";
 import { localizeError } from "../i18n/errors";
 import { codeLabel, statusLabel } from "../i18n/labels";
 
-export type FeatureCategory =
-  "all" | "commercials" | "partner_detail" | "organization" | "access_control" | "system";
+export type FeatureCategory = "all" | FeatureCategoryValue;
+type FeatureCategoryValue =
+  | "commercials"
+  | "partner_detail"
+  | "organization"
+  | "access_control"
+  | "system"
+  | "operations"
+  | "finance"
+  | "platform";
 
 export type AccessLevel = "none" | "read_only" | "full";
 
@@ -39,7 +47,7 @@ export interface GranularAction {
 export interface FeaturePermission {
   id: string;
   name: string;
-  category: "commercials" | "partner_detail" | "organization" | "access_control" | "system";
+  category: FeatureCategoryValue;
   pagePath: string;
   description: string;
   accessLevel: AccessLevel;
@@ -102,408 +110,17 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   );
 };
 
-// Base definitions of the actual application pages & features
-// i18n-ignore-start: static catalogue whose text is also the API payload; shown translated via roles.features.<id>.* keys
-export const DEFAULT_FEATURES: FeaturePermission[] = [
-  {
-    id: "feat_partner_review",
-    name: "Partner Detail: Review Lifecycle Actions",
-    category: "partner_detail",
-    pagePath: "/organizations/:org_id",
-    description:
-      "Control whether this user can approve, reject, flag under review, or permanently delete partner organizations.",
-    accessLevel: "full",
-    actions: [
-      {
-        key: "view_applications",
-        label: "View Partner Applications",
-        description: "See partner sign-ups from the website and every field they submitted",
-        enabled: true,
-      },
-      {
-        key: "approve_partner",
-        label: "Approve Partner",
-        description: "Authorize and approve onboarding application",
-        enabled: true,
-      },
-      {
-        key: "reject_partner",
-        label: "Reject Partner",
-        description: "Decline and reject onboarding application",
-        enabled: true,
-      },
-      {
-        key: "mark_under_review",
-        label: "Mark Under Review",
-        description: "Change status to Pending review",
-        enabled: true,
-      },
-      {
-        key: "delete_partner",
-        label: "Delete Partner",
-        description: "Permanently delete partner and all records",
-        enabled: true,
-      },
-    ],
-  },
-  {
-    id: "feat_partner_locations",
-    name: "Partner Detail: Locations Management Table",
-    category: "partner_detail",
-    pagePath: "/organizations/:org_id",
-    description:
-      "Control access to the locations table in partner detail. Choose if it is read-only or if user can create/delete branches.",
-    accessLevel: "full",
-    actions: [
-      {
-        key: "view_locations",
-        label: "View Locations Table",
-        description: "Read-only access to outlets list and last sync status",
-        enabled: true,
-      },
-      {
-        key: "create_location",
-        label: "Add New Location",
-        description: "Create outlet records with auto-generated location codes",
-        enabled: true,
-      },
-      {
-        key: "edit_location",
-        label: "Edit Location Details",
-        description: "Update location area, type, timezone, and currency",
-        enabled: true,
-      },
-      {
-        key: "delete_location",
-        label: "Delete Location",
-        description: "Permanently remove a branch or operational outlet",
-        enabled: true,
-      },
-    ],
-  },
-  {
-    id: "feat_partner_docs",
-    name: "Partner Detail: Documents & Verification",
-    category: "partner_detail",
-    pagePath: "/organizations/:org_id",
-    description:
-      "Manage access to PAN, Aadhaar, GST certificate, and license verification documents.",
-    accessLevel: "full",
-    actions: [
-      {
-        key: "view_docs",
-        label: "View Uploaded Documents",
-        description: "Inspect uploaded verification files and certificates",
-        enabled: true,
-      },
-      {
-        key: "verify_docs",
-        label: "Verify & Approve Documents",
-        description: "Mark KYC documents as approved or rejected",
-        enabled: true,
-      },
-      {
-        key: "edit_contact_info",
-        label: "Edit Contact Information",
-        description: "Modify partner email, phone number, and city details",
-        enabled: true,
-      },
-    ],
-  },
-  {
-    id: "feat_org_360",
-    name: "Organization 360: Directory & Search",
-    category: "organization",
-    pagePath: "/organizations/360",
-    description:
-      "Access the global directory of partners, search by domain/status, and register new organizations.",
-    accessLevel: "full",
-    actions: [
-      {
-        key: "view_directory",
-        label: "View Organizations Directory",
-        description: "Browse partner directory with search and status filters",
-        enabled: true,
-      },
-      {
-        key: "create_org",
-        label: "Register Organization",
-        description: "Create new partner records via onboarding modal",
-        enabled: true,
-      },
-      {
-        key: "export_org_csv",
-        label: "Export Organization Records",
-        description: "Download filtered partner listings as CSV/Excel",
-        enabled: true,
-      },
-    ],
-  },
-  {
-    id: "feat_commercial_plans",
-    name: "Commercials: Platform Plans & Modules",
-    category: "commercials",
-    pagePath: "/commercials/plans",
-    description:
-      "Control access to SaaS tier pricing, provisioning quotas (locations & user limits), platform module bundle selections, draft revisions, and live plan publishing.",
-    accessLevel: "full",
-    actions: [
-      {
-        key: "view_plans",
-        label: "View Platform Plans",
-        description:
-          "Browse the SaaS plans table, inspect pricing, filter by currency/status, and view assigned tenant counts",
-        enabled: true,
-      },
-      {
-        key: "create_plan",
-        label: "Create New Plan",
-        description:
-          "Access the plan creation wizard, configure initial tier name, billing cadence, and trial periods",
-        enabled: true,
-      },
-      {
-        key: "edit_plan",
-        label: "Edit Plan & Limits",
-        description:
-          "Modify plan pricing, update hard provision limits (max locations, admin seats), and change effective dates",
-        enabled: true,
-      },
-      {
-        key: "manage_modules",
-        label: "Configure Included Modules",
-        description: "Select or deselect platform modules bundled into a plan",
-        enabled: true,
-      },
-      {
-        key: "publish_plan",
-        label: "Publish Plan Impact",
-        description:
-          "Preview live tenant impact modal and request/publish plan drafts into active production tiers",
-        enabled: true,
-      },
-      {
-        key: "duplicate_plan",
-        label: "Duplicate Plan",
-        description: "Clone an existing published or retired plan into a new working draft version",
-        enabled: true,
-      },
-      {
-        key: "retire_plan",
-        label: "Retire / Archive Plan",
-        description:
-          "Mark plans as Retired to grandfather existing tenants while restricting new organization assignments",
-        enabled: true,
-      },
-    ],
-  },
-  {
-    id: "feat_commercial_packs",
-    name: "Commercials: Feature Packs",
-    category: "commercials",
-    pagePath: "/commercials/packs",
-    description:
-      "Control access to commercial feature add-on packs, pricing configuration, tier plan compatibility, and live pack publishing.",
-    accessLevel: "full",
-    actions: [
-      {
-        key: "view_packs",
-        label: "View Feature Packs",
-        description:
-          "Browse the commercial feature packs table, inspect pricing and assigned tenant counts",
-        enabled: true,
-      },
-      {
-        key: "create_pack",
-        label: "Create Feature Pack",
-        description: "Configure new add-on feature packs with pricing and compatible tier plans",
-        enabled: true,
-      },
-      {
-        key: "edit_pack",
-        label: "Edit Feature Pack",
-        description:
-          "Modify pack pricing, extended limits, effective dates, and plan compatibility",
-        enabled: true,
-      },
-      {
-        key: "publish_pack",
-        label: "Publish Feature Pack",
-        description: "Publish draft feature packs into active production availability",
-        enabled: true,
-      },
-      {
-        key: "retire_pack",
-        label: "Retire Feature Pack",
-        description: "Archive or retire feature packs to restrict new tenant adoption",
-        enabled: true,
-      },
-      {
-        key: "delete_pack",
-        label: "Delete Draft Pack",
-        description: "Permanently delete draft feature packs not assigned to any organizations",
-        enabled: true,
-      },
-    ],
-  },
-  {
-    id: "feat_commercial_addons",
-    name: "Commercials: Optional Add-ons",
-    category: "commercials",
-    pagePath: "/commercials/add-ons",
-    description:
-      "Control access to SaaS optional commercial add-ons, pricing configuration, tier plan compatibility, and add-on publishing/retiring.",
-    accessLevel: "full",
-    actions: [
-      {
-        key: "view_addons",
-        label: "View Optional Add-ons",
-        description:
-          "Browse commercial add-ons catalog, inspect pricing, category, compatibility and active allocations",
-        enabled: true,
-      },
-      {
-        key: "create_addon",
-        label: "Create Add-on",
-        description:
-          "Access add-on creation editor, configure metadata, pricing, cadence and purchase limits",
-        enabled: true,
-      },
-      {
-        key: "edit_addon",
-        label: "Edit Add-on",
-        description:
-          "Modify add-on metadata, description, pricing, purchase quantity limits and plan compatibility",
-        enabled: true,
-      },
-      {
-        key: "publish_addon",
-        label: "Publish Add-on",
-        description: "Publish draft add-on options into active catalog for tenant provisioning",
-        enabled: true,
-      },
-      {
-        key: "retire_addon",
-        label: "Retire Add-on",
-        description:
-          "Retire active add-ons to restrict new purchases while preserving existing client subscriptions",
-        enabled: true,
-      },
-      {
-        key: "delete_addon",
-        label: "Delete Draft Add-on",
-        description:
-          "Permanently remove unpublished draft add-ons not assigned to any organizations",
-        enabled: true,
-      },
-    ],
-  },
-  {
-    id: "feat_users_mgmt",
-    name: "Access Control: Users Management",
-    category: "access_control",
-    pagePath: "/users",
-    description:
-      "Administer system accounts, invite staff members, and modify panel assignments and statuses.",
-    accessLevel: "full",
-    actions: [
-      {
-        key: "view_users",
-        label: "View Staff Accounts",
-        description: "Browse user accounts, panels, and activity states",
-        enabled: true,
-      },
-      {
-        key: "invite_user",
-        label: "Invite / Add Staff",
-        description: "Issue onboarding invitations for new staff users",
-        enabled: true,
-      },
-      {
-        key: "edit_user",
-        label: "Edit Roles & Panels",
-        description: "Change user access panel, role tier, and active status",
-        enabled: true,
-      },
-      {
-        key: "delete_user",
-        label: "Delete Staff Account",
-        description: "Revoke credentials and delete system accounts",
-        enabled: true,
-      },
-    ],
-  },
-  {
-    id: "feat_roles_templates",
-    name: "Access Control: Roles & Permissions (Security Policies)",
-    category: "access_control",
-    pagePath: "/access-control/roles",
-    description:
-      "Configure role definitions, customize security policies, and manage feature-by-feature permission matrices.",
-    accessLevel: "full",
-    actions: [
-      {
-        key: "view_roles",
-        label: "View Roles & Permissions",
-        description: "Inspect role profiles, permissions matrix, and security policies",
-        enabled: true,
-      },
-      {
-        key: "create_roles",
-        label: "Create Roles & Permissions",
-        description: "Configure new role templates with customized permission matrix",
-        enabled: true,
-      },
-      {
-        key: "edit_roles",
-        label: "Edit Roles & Permissions",
-        description:
-          "Modify authorization parameters, permissions matrix, and actions on existing roles",
-        enabled: true,
-      },
-      {
-        key: "delete_roles",
-        label: "Delete Roles & Permissions",
-        description: "Permanently delete custom role definitions",
-        enabled: true,
-      },
-    ],
-  },
+// The permission catalogue (every feature and action a role can be granted) comes from the backend's
+// permission registry via GET /roles/catalog, so a feature added there is grantable here without a
+// frontend change. There is deliberately no copy of it in this file.
 
-  {
-    id: "feat_audit_compliance",
-    name: "Audit Trails & Security Logs",
-    category: "system",
-    pagePath: "/access-control/audit-logs",
-    description:
-      "Review platform audit logs, security authentication events, and data modification timestamps.",
-    accessLevel: "full",
-    actions: [
-      {
-        key: "view_audit_logs",
-        label: "View Audit Trail",
-        description: "Inspect immutable audit logs of platform operations",
-        enabled: true,
-      },
-      {
-        key: "export_audit_logs",
-        label: "Export Audit Reports",
-        description: "Export compliance logs for compliance verification",
-        enabled: true,
-      },
-    ],
-  },
-];
-// i18n-ignore-end
-
-// Helper to generate blank default features for new role
-export const getBlankFeatures = (): FeaturePermission[] => {
-  return DEFAULT_FEATURES.map((feat) => ({
+/** A blank matrix for a new role: every catalogue feature, nothing granted. */
+export const blankFeatures = (catalogue: FeaturePermission[]): FeaturePermission[] =>
+  catalogue.map((feat) => ({
     ...feat,
     accessLevel: "none",
     actions: feat.actions.map((act) => ({ ...act, enabled: false })),
   }));
-};
 
 // ---------------------------------------------------------------------------
 // Display text for the static permission catalogue.
@@ -545,13 +162,16 @@ const ACCESS_LEVEL_KEYS: Record<AccessLevel, string> = {
   full: "roles.access.full",
 };
 
-const CATEGORY_VALUES = [
+const CATEGORY_VALUES: FeatureCategoryValue[] = [
   "commercials",
   "partner_detail",
   "organization",
   "access_control",
+  "operations",
+  "finance",
+  "platform",
   "system",
-] as const;
+];
 
 export const RolesPermissionsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -603,7 +223,9 @@ export const RolesPermissionsPage: React.FC = () => {
   const [formTemplate, setFormTemplate] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formIsActive, setFormIsActive] = useState(true);
-  const [formFeatures, setFormFeatures] = useState<FeaturePermission[]>(getBlankFeatures());
+  const [formFeatures, setFormFeatures] = useState<FeaturePermission[]>([]);
+  // Grantable features, from the backend permission registry (GET /roles/catalog).
+  const [catalogue, setCatalogue] = useState<FeaturePermission[] | null>(null);
   const [activeCategoryTab, setActiveCategoryTab] = useState<FeatureCategory>("all");
 
   // Notification Toast state
@@ -636,8 +258,18 @@ export const RolesPermissionsPage: React.FC = () => {
     }
   };
 
+  const fetchCatalogue = async () => {
+    try {
+      const res = await roleApi.getCatalog();
+      setCatalogue(res.features as FeaturePermission[]);
+    } catch (err: any) {
+      showNotification(localizeError(err, "roles.catalogueLoadFailed"), "error");
+    }
+  };
+
   useEffect(() => {
     fetchRoles();
+    fetchCatalogue();
   }, []);
 
   // Convert role name to snake_case key
@@ -770,7 +402,13 @@ export const RolesPermissionsPage: React.FC = () => {
     setFormTemplate("");
     setFormDescription("");
     setFormIsActive(true);
-    setFormFeatures(getBlankFeatures());
+    if (!catalogue) {
+      // Without the catalogue a new role could not be granted anything: retry instead of opening.
+      showNotification(t("roles.catalogueLoadFailed"), "error");
+      fetchCatalogue();
+      return;
+    }
+    setFormFeatures(blankFeatures(catalogue));
     setActiveCategoryTab("all");
     setActiveModalType("create");
   };

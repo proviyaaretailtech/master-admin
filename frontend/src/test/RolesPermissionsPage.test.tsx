@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { RolesPermissionsPage, DEFAULT_FEATURES } from "../pages/RolesPermissionsPage";
+import { RolesPermissionsPage } from "../pages/RolesPermissionsPage";
+import { CATALOGUE, FULL_GRANT } from "./fixtures/permission-catalogue";
 import { roleApi } from "../api/role.api";
 import { AuthContext } from "../context/auth-context";
 
@@ -22,6 +23,7 @@ const mockAdminUser = {
 vi.mock("../api/role.api", () => ({
   roleApi: {
     getAll: vi.fn(),
+    getCatalog: vi.fn(),
     getById: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
@@ -43,7 +45,7 @@ const mockApiRoles = [
     assignedCount: 2,
     createdAt: "2026-09-27T00:00:00Z",
     updatedAt: "2026-09-27T00:00:00Z",
-    features: DEFAULT_FEATURES,
+    features: FULL_GRANT,
   },
   {
     id: "role-2",
@@ -58,7 +60,7 @@ const mockApiRoles = [
     assignedCount: 5,
     createdAt: "2026-09-27T00:00:00Z",
     updatedAt: "2026-09-27T00:00:00Z",
-    features: DEFAULT_FEATURES.map((f) => {
+    features: FULL_GRANT.map((f) => {
       if (f.id === "feat_partner_locations") {
         return {
           ...f,
@@ -78,6 +80,7 @@ describe("RolesPermissionsPage Component (Feature-by-Feature Access Control with
       roles: mockApiRoles as any,
       total: mockApiRoles.length,
     });
+    vi.mocked(roleApi.getCatalog).mockResolvedValue({ message: "ok", features: CATALOGUE as any });
   });
 
   const renderComponent = (initialRoute = "/access-control/policies") => {
@@ -242,7 +245,7 @@ describe("RolesPermissionsPage Component (Feature-by-Feature Access Control with
       assignedCount: 0,
       createdAt: "2026-09-27T00:00:00Z",
       updatedAt: "2026-09-27T00:00:00Z",
-      features: DEFAULT_FEATURES,
+      features: FULL_GRANT,
     };
 
     vi.mocked(roleApi.create).mockResolvedValueOnce({
@@ -299,5 +302,35 @@ describe("RolesPermissionsPage Component (Feature-by-Feature Access Control with
     await waitFor(() => {
       expect(roleApi.delete).toHaveBeenCalledWith("role-2");
     });
+  });
+
+  it("builds the new-role matrix from the backend catalogue, so newer features are grantable", async () => {
+    renderComponent();
+    await waitFor(() => expect(roleApi.getCatalog).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /^Super-admin$/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /Create Role/i }));
+
+    // feat_orders came only from the catalogue; its action is listed (in English via the catalogue
+    // text, and the "operations" category exists in the filter)
+    expect(screen.getByText("Orders & Order 360")).toBeInTheDocument();
+    expect(screen.getByText("Release or Reject Held Orders")).toBeInTheDocument();
+    const categorySelect = screen.getByLabelText(/Filter features by module category/i);
+    fireEvent.change(categorySelect, { target: { value: "operations" } });
+    expect(screen.getByText("Orders & Order 360")).toBeInTheDocument();
+    expect(screen.queryByText("Partner Detail: Review Lifecycle Actions")).not.toBeInTheDocument();
+  });
+
+  it("does not open the editor with an empty matrix when the catalogue failed to load", async () => {
+    vi.mocked(roleApi.getCatalog).mockRejectedValue(new Error("offline"));
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /^Super-admin$/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Create Role/i }));
+    expect(screen.queryByRole("heading", { name: /^New custom role$/i })).not.toBeInTheDocument();
+    await waitFor(() => expect(roleApi.getCatalog).toHaveBeenCalledTimes(2));
   });
 });

@@ -10,7 +10,14 @@ export interface GranularAction {
 }
 
 export type FeatureCategory =
-  "commercials" | "partner_detail" | "organization" | "access_control" | "system";
+  | "commercials"
+  | "partner_detail"
+  | "organization"
+  | "access_control"
+  | "system"
+  | "operations"
+  | "finance"
+  | "platform";
 
 export interface FeaturePermission {
   id: string;
@@ -78,6 +85,17 @@ export const roleApi = {
 
     const response = await apiClient.get<{ message: string; roles: SecurityRole[]; total: number }>(
       url
+    );
+    return response.data;
+  },
+
+  /**
+   * Every feature and action a role can be granted (the backend permission registry), all off.
+   * The role editor builds its matrix from this.
+   */
+  async getCatalog(): Promise<{ message: string; features: FeaturePermission[] }> {
+    const response = await apiClient.get<{ message: string; features: FeaturePermission[] }>(
+      "/roles/catalog"
     );
     return response.data;
   },
