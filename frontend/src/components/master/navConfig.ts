@@ -57,6 +57,12 @@ export const NAV_SECTIONS: NavSection[] = [
         feature: { id: "feat_partner_locations", action: "view_locations" },
       },
       {
+        id: "partnerApplications",
+        labelKey: "nav.items.partnerApplications",
+        path: "/partner-applications",
+        feature: { id: FEAT.PARTNER_REVIEW.id, action: FEAT.PARTNER_REVIEW.view },
+      },
+      {
         id: "invitations",
         labelKey: "nav.items.invitations",
         path: "/invitations",
@@ -133,6 +139,12 @@ export const NAV_SECTIONS: NavSection[] = [
         id: "orders",
         labelKey: "nav.items.orders",
         path: "/orders",
+        feature: { id: FEAT.ORDERS.id, action: FEAT.ORDERS.view },
+      },
+      {
+        id: "orderHolds",
+        labelKey: "nav.items.orderHolds",
+        path: "/order-holds",
         feature: { id: FEAT.ORDERS.id, action: FEAT.ORDERS.view },
       },
       {

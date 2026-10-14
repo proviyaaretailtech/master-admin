@@ -20,6 +20,8 @@ import { Organization360OpsPage } from "../pages/master/Organization360OpsPage";
 import { ChangePlanPage } from "../pages/master/ChangePlanPage";
 import { InvitationsPage } from "../pages/master/InvitationsPage";
 import { RidersPage } from "../pages/master/RidersPage";
+import { PartnerApplicationsPage } from "../pages/master/PartnerApplicationsPage";
+import { OrderHoldsPage } from "../pages/master/OrderHoldsPage";
 import { RiderPayPage } from "../pages/master/RiderPayPage";
 import { CommissionRulesPage } from "../pages/master/CommissionRulesPage";
 import { OrdersPage, Order360Page } from "../pages/master/OrdersPage";
@@ -560,6 +562,30 @@ export const AppRoutes: React.FC = () => {
                 featureNameKey="nav.feature.invitations"
               >
                 <InvitationsPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/partner-applications"
+            element={
+              <PermissionRoute
+                featureId={FEAT.PARTNER_REVIEW.id}
+                actionKey={FEAT.PARTNER_REVIEW.view}
+                featureNameKey="nav.feature.partnerApplications"
+              >
+                <PartnerApplicationsPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/order-holds"
+            element={
+              <PermissionRoute
+                featureId={FEAT.ORDERS.id}
+                actionKey={FEAT.ORDERS.view}
+                featureNameKey="nav.feature.orderHolds"
+              >
+                <OrderHoldsPage />
               </PermissionRoute>
             }
           />

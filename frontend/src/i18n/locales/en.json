@@ -153,7 +153,11 @@
     "disputed": "Disputed",
     "connected": "Connected",
     "error": "Error",
-    "captured": "Captured"
+    "captured": "Captured",
+    "reviewing": "Reviewing",
+    "withdrawn": "Withdrawn",
+    "held": "Held",
+    "released": "Released"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -172,7 +176,11 @@
       "VALIDATION_ERROR": "Some of the information you entered is not valid.",
       "RESOURCE_NOT_FOUND": "We could not find what you were looking for.",
       "INTERNAL_SERVER_ERROR": "The server ran into a problem. Please try again in a moment.",
-      "PAYLOAD_TOO_LARGE": "The data you sent is too large."
+      "PAYLOAD_TOO_LARGE": "The data you sent is too large.",
+      "one_local_forbidden": "One Local only lets its super admins release or reject held orders. Ask a super admin.",
+      "one_local_session_rejected": "One Local did not accept your session. Sign in again.",
+      "order_hold_already_decided": "Someone has already decided this hold. Refresh to see the outcome.",
+      "ol_wrong_state": "This application can no longer be decided in its current status. Refresh to see it."
     },
     "status": {
       "400": "The request was not valid.",
@@ -357,7 +365,9 @@
       "integrationCentre": "Integration centre",
       "crm": "CRM integration",
       "cms": "CMS integration",
-      "apiWebhooks": "API & webhooks"
+      "apiWebhooks": "API & webhooks",
+      "partnerApplications": "Partner applications",
+      "orderHolds": "Held orders"
     },
     "feature": {
       "usersManagement": "Users Management",
@@ -389,7 +399,9 @@
       "integrations": "Integration centre",
       "crm": "CRM integration",
       "cms": "CMS integration",
-      "apiWebhooks": "API & webhooks"
+      "apiWebhooks": "API & webhooks",
+      "partnerApplications": "Partner applications",
+      "orderHolds": "Held orders"
     },
     "placeholder": {
       "eyebrow": "SYSTEM DOMAIN MODULE",
@@ -1271,6 +1283,10 @@
           "delete_partner": {
             "label": "Delete Partner",
             "description": "Permanently delete partner and all records"
+          },
+          "view_applications": {
+            "label": "View Partner Applications",
+            "description": "See partner sign-ups from the website and every field they submitted"
           }
         }
       },
@@ -2243,6 +2259,130 @@
         "method": "Method",
         "path": "Path",
         "app": "App"
+      }
+    },
+    "applications": {
+      "title": "Partner applications",
+      "subtitle": "Businesses that signed up on the partner website. Approving one creates its organisation and makes the applicant its owner.",
+      "searchPlaceholder": "Business, owner, phone, email or reference",
+      "empty": "No applications match.",
+      "drawerTitle": "Partner application",
+      "business": "Business",
+      "categories": "Categories",
+      "subcategories": "Subcategories",
+      "categoryFamily": "Category family",
+      "businessType": "Business type",
+      "partnerType": "Partner type",
+      "partnerTypeName": {
+        "store": "Store",
+        "restaurant": "Restaurant",
+        "service": "Service",
+        "logistic": "Logistics"
+      },
+      "outlets": "Outlets",
+      "services": "Services",
+      "serviceName": {
+        "delivery": "Delivery",
+        "pickup": "Pickup",
+        "dine_in": "Dine-in"
+      },
+      "ownDelivery": "Own delivery staff",
+      "owner": "Owner",
+      "whatsapp": "WhatsApp updates",
+      "pinCode": "PIN code",
+      "city": "City",
+      "gstin": "GSTIN",
+      "fssai": "FSSAI licence",
+      "consent": "Consent",
+      "reference": "Reference",
+      "submittedAt": "Submitted",
+      "source": "Source",
+      "sourceName": {
+        "partner_website": "Partner website",
+        "field_sales": "Field sales",
+        "partner_app": "Partner app"
+      },
+      "reviewedAt": "Decided",
+      "reviewNote": "Decision note",
+      "organization": "Organisation",
+      "history": "History",
+      "noteOptional": "Note (optional)",
+      "section": {
+        "review": "Review",
+        "business": "Business",
+        "owner": "Owner and login",
+        "address": "Address",
+        "compliance": "Licences and consent"
+      },
+      "login": {
+        "label": "Partner app login",
+        "confirmed": "email confirmed",
+        "unconfirmed": "email not confirmed yet",
+        "matchConfirmed": "A login with this email exists; approving makes it the owner.",
+        "matchUnconfirmed": "A login with this email exists but is not confirmed; approving sends the owner an invitation.",
+        "none": "No login yet; approving sends the owner an invitation by email."
+      },
+      "action": {
+        "approve": "Approve",
+        "reject": "Reject"
+      },
+      "dialog": {
+        "approve": {
+          "title": "Approve this partner?",
+          "body": "This creates the organisation for {{name}} and makes the applicant its owner. Ordering stays closed until the menu is ready."
+        },
+        "reject": {
+          "title": "Reject this application?",
+          "body": "{{name}}'s application will be closed. Say why; the reason is kept on record."
+        }
+      },
+      "done": {
+        "approvedMember": "Approved. The organisation was created and the applicant's login is its owner.",
+        "approvedInvited": "Approved. The organisation was created and the owner was invited by email.",
+        "rejected": "Rejected. The reason is on record."
+      },
+      "audit": {
+        "partner_application_approved": "Approved",
+        "partner_application_rejected": "Rejected"
+      }
+    },
+    "holds": {
+      "title": "Held orders",
+      "subtitle": "Orders that looked unusual are held here. The restaurant sees nothing until someone releases or rejects them.",
+      "searchPlaceholder": "Store, organisation, city or order id",
+      "empty": "No held orders match.",
+      "drawerTitle": "Held order",
+      "heldAt": "Held at",
+      "store": "Store",
+      "city": "City",
+      "payment": "Payment",
+      "order": "Order id",
+      "items": "Items",
+      "why": "Why it was held",
+      "decidedAt": "Decided",
+      "reason": {
+        "line_qty": "{{qty}} × {{item}} (more than {{limit}} of one item)",
+        "cash_total": "Cash order of {{total}} (above {{limit}})",
+        "first_cash_total": "First cash order of {{total}} (above {{limit}})",
+        "orders_per_hour": "{{recent}} orders in the last hour (limit {{limit}})"
+      },
+      "action": {
+        "release": "Release to restaurant",
+        "reject": "Reject and cancel"
+      },
+      "dialog": {
+        "release": {
+          "title": "Release this order?",
+          "body": "The order goes to the restaurant now and is dispatched as usual. Say why it is fine."
+        },
+        "reject": {
+          "title": "Reject this order?",
+          "body": "The order is cancelled and any payment is refunded. Say why."
+        }
+      },
+      "done": {
+        "release": "Released. The order is on its way to the restaurant.",
+        "reject": "Rejected. The order was cancelled."
       }
     }
   }

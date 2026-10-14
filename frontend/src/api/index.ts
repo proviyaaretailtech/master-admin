@@ -19,3 +19,5 @@ export * from "./finance.api";
 export * from "./audit.api";
 export * from "./integrations.api";
 export * from "./api-webhooks.api";
+export * from "./partner-applications.api";
+export * from "./order-holds.api";

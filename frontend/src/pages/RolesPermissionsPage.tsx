@@ -115,6 +115,12 @@ export const DEFAULT_FEATURES: FeaturePermission[] = [
     accessLevel: "full",
     actions: [
       {
+        key: "view_applications",
+        label: "View Partner Applications",
+        description: "See partner sign-ups from the website and every field they submitted",
+        enabled: true,
+      },
+      {
         key: "approve_partner",
         label: "Approve Partner",
         description: "Authorize and approve onboarding application",
