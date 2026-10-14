@@ -23,9 +23,21 @@ export interface Settlement {
   period_end: string;
   status: string;
   net: Money;
+  /** How the net is reached: food due - clawback - commission - GST on commission - debt in = net - debt out. */
+  breakdown: SettlementBreakdown;
   approved_by?: string | null;
   /** The backend does not send this; kept optional for a future field. */
   created_by_me?: boolean;
+}
+export interface SettlementBreakdown {
+  foodDue: Money;
+  clawback: Money;
+  commission: Money;
+  commissionGst: Money;
+  debtIn: Money;
+  debtOut: Money;
+  /** Delivery fees customers paid on these orders: One Local keeps them (it pays the riders); never part of the payout. */
+  deliveryFee: Money;
 }
 export interface Payout {
   id: string;
@@ -70,6 +82,15 @@ const mapSettlement = (s: Row): Settlement => ({
   period_end: String(s.period_end),
   status: String(s.status),
   net: money(s.net_minor, s.currency_code),
+  breakdown: {
+    foodDue: money(s.food_due_minor, s.currency_code),
+    clawback: money(s.clawback_minor, s.currency_code),
+    commission: money(s.commission_minor, s.currency_code),
+    commissionGst: money(s.commission_gst_minor, s.currency_code),
+    debtIn: money(s.debt_in_minor, s.currency_code),
+    debtOut: money(s.debt_out_minor, s.currency_code),
+    deliveryFee: money(s.delivery_fee_minor, s.currency_code),
+  },
 });
 
 export const financeApi = {

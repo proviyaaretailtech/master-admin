@@ -198,6 +198,16 @@ describe("Settlements & payouts", () => {
     period_end: "2026-09-30",
     status: "draft",
     net: inr(900000),
+    // 12000 - 500 - 1800 - 324 - 376 = 9000
+    breakdown: {
+      foodDue: inr(1200000),
+      clawback: inr(50000),
+      commission: inr(180000),
+      commissionGst: inr(32400),
+      debtIn: inr(37600),
+      debtOut: inr(0),
+      deliveryFee: inr(60000),
+    },
   };
   it("approve is confirmed; own items show the maker-checker note instead of a button", async () => {
     vi.mocked(financeApi.settlements).mockResolvedValue(
@@ -205,7 +215,12 @@ describe("Settlements & payouts", () => {
     );
     vi.mocked(financeApi.approveSettlement).mockResolvedValue({});
     renderPage(<SettlementsPayoutsPage />);
-    expect(await screen.findAllByText("₹9,000")).toHaveLength(2);
+    // net column + the "= Net" line of the breakdown, for both rows
+    expect(await screen.findAllByText("₹9,000")).toHaveLength(4);
+    for (const amount of ["₹12,000", "₹500", "₹1,800", "₹324", "₹376"]) expect(screen.getAllByText(amount)).toHaveLength(2);
+    expect(screen.getAllByText("GST on commission")).toHaveLength(2);
+    expect(screen.queryByText("Shortfall carried to the next settlement")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Delivery fees ₹600 stay with One Local (it pays the riders).")).toHaveLength(2);
     expect(screen.getByText("Needs a different approver")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Approve" }));
     const dlg = await screen.findByRole("dialog");

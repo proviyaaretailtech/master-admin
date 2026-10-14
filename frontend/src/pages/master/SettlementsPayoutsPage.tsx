@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { financeApi } from "../../api/finance.api";
 import type { Payout, Settlement } from "../../api/finance.api";
+import type { Money } from "../../api/_http";
 import { usePermissions } from "../../hooks/use-permissions";
 import { FEAT } from "../../lib/master-features";
 import { todayIso } from "../../lib/units";
@@ -25,6 +26,43 @@ import {
 } from "../../components/master/ui";
 import { useMasterScope } from "../../components/master/MasterContext";
 import { useAction, useResource } from "../../components/master/useResource";
+
+/** The payout sum, line by line: food due - clawback - commission - GST on commission - debt in = net (a shortfall is carried as debt). */
+const SettlementBreakdownList: React.FC<{ s: Settlement }> = ({ s }) => {
+  const { t } = useTranslation();
+  const f = useFormat();
+  const b = s.breakdown;
+  const m = (v: Money) => f.moneyMinor(v.amount_minor, { currency: v.currency });
+  const lines: Array<[string, string, Money, boolean?]> = [
+    ["", t("m.settlements.foodDue"), b.foodDue],
+    ["−", t("m.settlements.clawback"), b.clawback],
+    ["−", t("m.settlements.commission"), b.commission],
+    ["−", t("m.settlements.commissionGst"), b.commissionGst],
+  ];
+  if (b.debtIn.amount_minor) lines.push(["−", t("m.settlements.debtIn"), b.debtIn]);
+  lines.push(["=", t("m.settlements.net"), s.net, true]);
+  if (b.debtOut.amount_minor) lines.push(["", t("m.settlements.debtOut"), b.debtOut]);
+  return (
+    <div className="min-w-[14rem] text-[12px] leading-5">
+      <dl>
+        {lines.map(([sign, label, v, strong]) => (
+          <div key={label} className={`flex justify-between gap-3 ${strong ? "border-t border-slate-200 font-semibold" : ""}`}>
+            <dt>
+              <span className="inline-block w-3 text-slate-500" aria-hidden="true">
+                {sign}
+              </span>
+              {label}
+            </dt>
+            <dd className="tabular-nums">{m(v)}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-1 text-[11px] text-slate-500">
+        {t("m.settlements.deliveryFeeKept", { amount: m(b.deliveryFee) })}
+      </p>
+    </div>
+  );
+};
 
 const SettlementsPanel: React.FC<{ onNotice: (s: string) => void }> = ({ onNotice }) => {
   const { t } = useTranslation();
@@ -108,6 +146,11 @@ const SettlementsPanel: React.FC<{ onNotice: (s: string) => void }> = ({ onNotic
               key: "n",
               header: t("m.settlements.net"),
               render: (s) => f.moneyMinor(s.net.amount_minor, { currency: s.net.currency }),
+            },
+            {
+              key: "b",
+              header: t("m.settlements.breakdown"),
+              render: (s) => <SettlementBreakdownList s={s} />,
             },
             {
               key: "s",

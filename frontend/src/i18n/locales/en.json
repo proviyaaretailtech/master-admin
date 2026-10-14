@@ -2066,7 +2066,15 @@
       "approveTitle": "Approve this settlement?",
       "approveBody": "You approve a net amount of {{amount}}. This creates payouts.",
       "ran": "Settlement created for the period.",
-      "approved": "Settlement approved."
+      "approved": "Settlement approved.",
+      "breakdown": "How the payout adds up",
+      "foodDue": "Restaurant dues",
+      "clawback": "Refunds taken back",
+      "commission": "Commission",
+      "commissionGst": "GST on commission",
+      "debtIn": "Shortfall brought in",
+      "debtOut": "Shortfall carried to the next settlement",
+      "deliveryFeeKept": "Delivery fees {{amount}} stay with One Local (it pays the riders)."
     },
     "payouts": {
       "title": "Payouts",
