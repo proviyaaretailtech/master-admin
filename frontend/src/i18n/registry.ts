@@ -1,4 +1,4 @@
-import { AppLanguage, PSEUDO_LANGUAGE, isPseudoEnabled } from "./config";
+import { AppLanguage, PSEUDO_LANGUAGE } from "./config";
 
 /**
  * The locale registry. One row per language the user can pick.
@@ -44,8 +44,8 @@ const ALL_LOCALES: LocaleMeta[] = [
   },
 ];
 
-/** Locales visible to the user in this build (pseudo-locale only in dev). */
-export const LOCALES: LocaleMeta[] = ALL_LOCALES.filter((l) => !l.devOnly || isPseudoEnabled());
+/** Locales shown in the language switcher. The pseudo-locale stays registered for tests but is never listed. */
+export const LOCALES: LocaleMeta[] = ALL_LOCALES.filter((l) => !l.devOnly);
 
 export const getLocaleMeta = (code: string): LocaleMeta | undefined =>
   LOCALES.find((l) => l.code === code);

@@ -426,7 +426,7 @@
     "signOutEverywhere": "हर जगह से साइन आउट करें"
   },
   "auth": {
-    "title": "सुपर एडमिन",
+    "title": "मास्टर एडमिन",
     "emailLabel": "ईमेल पता",
     "passwordLabel": "पासवर्ड",
     "forgotPassword": "पासवर्ड भूल गए?",
@@ -488,7 +488,7 @@
       "eyebrow": "खाता प्रबंधन",
       "title": "प्रोफ़ाइल",
       "intro": "अपने स्टोर एडमिनिस्ट्रेटर के क्रेडेंशियल देखें, अपनी निजी संपर्क जानकारी संभालें और सिस्टम एक्सेस जाँचें।",
-      "superAdminBadge": "सुपर एडमिन",
+      "superAdminBadge": "मास्टर एडमिन",
       "supabaseConnected": "Supabase से जुड़ा है",
       "notAvailable": "उपलब्ध नहीं",
       "memberSinceFallback": "सितंबर 2026",
@@ -501,7 +501,7 @@
         "lastName": "उपनाम",
         "emailAddress": "ईमेल पता",
         "verifiedIdentity": "सत्यापित पहचान",
-        "emailHint": "आपके सुपर एडमिन खाते से जुड़ा मुख्य ईमेल।",
+        "emailHint": "आपके मास्टर एडमिन खाते से जुड़ा मुख्य ईमेल।",
         "phoneNumber": "फ़ोन नंबर",
         "saveChanges": "बदलाव सहेजें",
         "savingChanges": "बदलाव सहेजे जा रहे हैं..."
@@ -509,7 +509,7 @@
       "access": {
         "title": "सिस्टम एक्सेस",
         "systemRole": "सिस्टम भूमिका",
-        "systemRoleValue": "OneLatur सुपर एडमिनिस्ट्रेटर",
+        "systemRoleValue": "Proviyaa मास्टर एडमिनिस्ट्रेटर",
         "accountId": "खाता ID (UUID)",
         "authMechanism": "प्रमाणीकरण का तरीका",
         "authMechanismValue": "कस्टम JWT (HMAC-SHA256)",
@@ -760,7 +760,7 @@
     },
     "pipeline": {
       "eyebrow": "ऑनबोर्डिंग सिस्टम",
-      "title": "नए पार्टनर को OneLatur पर ऑनबोर्ड करें",
+      "title": "नए पार्टनर को Proviyaa पर ऑनबोर्ड करें",
       "intro": "“रेस्टोरेंट पार्टनर” को आसानी से सेट अप और लॉन्च करें - स्टोर की सेटिंग तय करें, KYC सत्यापन पूरा करें, कॉन्ट्रैक्ट पर हस्ताक्षर कराएँ और सिस्टम सक्रिय करें।",
       "selectType": "पार्टनर का प्रकार चुनें",
       "learnRequirements": "आवश्यकताओं के बारे में जानें",

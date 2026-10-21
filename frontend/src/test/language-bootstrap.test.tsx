@@ -77,8 +77,8 @@ describe("startup language", () => {
         </MemoryRouter>
       </AuthContext.Provider>
     );
-    expect(screen.getByRole("heading", { name: "सुपर एडमिन" })).toBeInTheDocument();
-    expect(screen.queryByText("Super Admin")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "मास्टर एडमिन" })).toBeInTheDocument();
+    expect(screen.queryByText("Master Admin")).not.toBeInTheDocument();
   });
 
   it("starts in English without loading Hindi when English is saved", async () => {

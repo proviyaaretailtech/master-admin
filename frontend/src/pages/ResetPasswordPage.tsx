@@ -82,7 +82,7 @@ export const ResetPasswordPage: React.FC = () => {
         <div className="flex justify-center">
           <div className="w-14 h-14 rounded-full bg-[#65D000] flex items-center justify-center shadow-sm">
             {/* i18n-ignore */}
-            <span className="text-white font-extrabold text-xl tracking-tight">OL</span>
+            <span className="text-white font-extrabold text-xl tracking-tight">P</span>
           </div>
         </div>
         <h1 className="mt-5 text-center text-xl sm:text-2xl font-bold tracking-tight text-slate-900">

@@ -93,7 +93,7 @@ export const LoginPage: React.FC = () => {
         {/* Logo Badge */}
         <div className="flex justify-center">
           <div className="w-14 h-14 rounded-full bg-[#65D000] flex items-center justify-center shadow-sm">
-            <span className="text-white font-extrabold text-xl tracking-tight">OL</span>
+            <span className="text-white font-extrabold text-xl tracking-tight">P</span>
           </div>
         </div>
 
@@ -215,7 +215,7 @@ export const LoginPage: React.FC = () => {
                   setEmail(e.target.value);
                   if (hasError) setHasError(false);
                 }}
-                placeholder="shop.admin@onelatur.com"
+                placeholder="admin@proviyaa.com"
                 required
                 className={`w-full px-3.5 py-2.5 text-sm rounded-xl border transition-colors outline-none placeholder:text-slate-400 ${
                   hasError

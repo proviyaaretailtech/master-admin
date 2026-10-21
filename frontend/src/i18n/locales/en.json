@@ -426,7 +426,7 @@
     "signOutEverywhere": "Sign out everywhere"
   },
   "auth": {
-    "title": "Super Admin",
+    "title": "Master Admin",
     "emailLabel": "Email Address",
     "passwordLabel": "Password",
     "forgotPassword": "Forgot password?",
@@ -488,7 +488,7 @@
       "eyebrow": "ACCOUNT MANAGEMENT",
       "title": "Profile",
       "intro": "View your store administrator credentials, manage your personal contact details, and inspect system access.",
-      "superAdminBadge": "Super Admin",
+      "superAdminBadge": "Master Admin",
       "supabaseConnected": "Supabase Connected",
       "notAvailable": "N/A",
       "memberSinceFallback": "September 2026",
@@ -501,7 +501,7 @@
         "lastName": "Last Name",
         "emailAddress": "Email Address",
         "verifiedIdentity": "Verified Identity",
-        "emailHint": "Primary email associated with your Super Admin account.",
+        "emailHint": "Primary email associated with your Master Admin account.",
         "phoneNumber": "Phone Number",
         "saveChanges": "Save Changes",
         "savingChanges": "Saving Changes..."
@@ -509,7 +509,7 @@
       "access": {
         "title": "System Access",
         "systemRole": "System Role",
-        "systemRoleValue": "OneLatur Super Administrator",
+        "systemRoleValue": "Proviyaa Master Administrator",
         "accountId": "Account ID (UUID)",
         "authMechanism": "Authentication Mechanism",
         "authMechanismValue": "Custom JWT (HMAC-SHA256)",
@@ -760,7 +760,7 @@
     },
     "pipeline": {
       "eyebrow": "ONBOARDING SYSTEM",
-      "title": "Onboard new partner onto OneLatur",
+      "title": "Onboard new partner onto Proviyaa",
       "intro": "Configure and launch “Restaurant Partners” easily - set store parameters, complete KYC validation, handle contract signing, and trigger system activation.",
       "selectType": "SELECT PARTNER TYPE",
       "learnRequirements": "Learn about requirements",

@@ -16,7 +16,7 @@ import {
   LocaleLoadError,
   isLocaleLoaded,
 } from "../i18n/loader";
-import { resetLanguageStore, selectLanguage, getLanguageState } from "../i18n/language-store";
+import { resetLanguageStore, selectLanguage } from "../i18n/language-store";
 import { LANGUAGE_STORAGE_KEY } from "../i18n/config";
 import hi from "../i18n/locales/hi.json";
 
@@ -79,7 +79,7 @@ afterEach(async () => {
 describe("switching language re-renders instantly without remounting", () => {
   it("login page: text, <html lang> and the typed email all update in place", async () => {
     renderLogin();
-    expect(screen.getByRole("heading", { name: "Super Admin" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Master Admin" })).toBeInTheDocument();
 
     const email = screen.getByLabelText("Email Address") as HTMLInputElement;
     fireEvent.change(email, { target: { value: "owner@example.com" } });
@@ -90,7 +90,7 @@ describe("switching language re-renders instantly without remounting", () => {
     });
 
     // Same frame: no waitFor needed after the awaited switch.
-    expect(screen.getByRole("heading", { name: "सुपर एडमिन" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "मास्टर एडमिन" })).toBeInTheDocument();
     expect(screen.getByLabelText("ईमेल पता")).toBe(email); // same DOM node: not remounted
     expect(email.value).toBe("owner@example.com"); // typed state kept
     expect(screen.getByRole("button", { name: "साइन इन करें" })).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe("switching language re-renders instantly without remounting", () => {
     await act(async () => {
       await selectLanguage("en");
     });
-    expect(screen.getByRole("heading", { name: "Super Admin" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Master Admin" })).toBeInTheDocument();
     expect(document.documentElement.getAttribute("lang")).toBe("en");
     expect(email.value).toBe("owner@example.com");
   });
@@ -278,35 +278,15 @@ describe("Settings > Language", () => {
     await waitFor(() => expect(i18n.language).toBe("hi"));
   });
 
-  it("last click wins when the user switches quickly", async () => {
-    const slowHi = deferredLoader();
-    const fastPseudo = deferredLoader();
-    localeLoaders.hi = slowHi.loader;
-    localeLoaders["en-XA"] = fastPseudo.loader;
+  it("lists only English and Hindi; the pseudo-locale cannot be chosen", async () => {
     renderSettings();
-
+    expect(screen.queryByRole("radio", { name: /Pseudo/ })).not.toBeInTheDocument();
+    let switched = true;
     await act(async () => {
-      fireEvent.click(radio(/हिन्दी/));
+      switched = await selectLanguage("en-XA");
     });
-    await act(async () => {
-      fireEvent.click(radio(/Pseudo/));
-    });
-    // only the latest target shows a loader
-    expect(radio(/हिन्दी/)).not.toHaveAttribute("aria-busy");
-    expect(radio(/Pseudo/)).toHaveAttribute("aria-busy", "true");
-
-    // the EARLIER request finishes first: it must not be applied
-    await act(async () => {
-      slowHi.resolve();
-    });
+    expect(switched).toBe(false);
     expect(i18n.language).toBe("en");
-    expect(isLocaleLoaded("hi")).toBe(true); // cached for later, just not applied
-
-    await act(async () => {
-      fastPseudo.resolve();
-    });
-    await waitFor(() => expect(i18n.language).toBe("en-XA"));
-    expect(getLanguageState().active).toBe("en-XA");
   });
 
   it("choosing the active language cancels a pending switch", async () => {
