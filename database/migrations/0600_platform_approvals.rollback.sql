@@ -1,11 +1,20 @@
+-- ######################################################################
+-- ##  UNDO FILE. This REMOVES 0600. To APPLY 0600, use                 ##
+-- ##  0600_platform_approvals.sql instead (the file without .rollback). ##
+-- ######################################################################
 -- 0600_platform_approvals.rollback.sql
 -- Undoes 0600_platform_approvals.sql. Run only if 0600 must be removed.
--- Refuses to run if any platform approval request exists, so no approval history is ever lost.
+-- Stops with a clear message if 0600 was never applied, and refuses to run if any platform approval request exists,
+-- so no approval history is ever lost.
 
 begin;
 
 do $$
 begin
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = 'public' and table_name = 'approval_requests' and column_name = 'scope') then
+    raise exception 'ROLLBACK_NOT_NEEDED: 0600 is not applied, so there is nothing to undo. To apply it, run 0600_platform_approvals.sql';
+  end if;
   if exists (select 1 from public.approval_requests where scope = 'platform') then
     raise exception 'ROLLBACK_BLOCKED: platform approval requests exist; keep 0600 or archive them first';
   end if;

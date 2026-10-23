@@ -13,7 +13,7 @@ The live record of applied changes is `public.schema_migrations_ledger` (highest
 
 1. Open **supabase.com** (type the address yourself) and open your project.
 2. In the left menu, click **SQL Editor**, then **New query**.
-3. Open the `.sql` file in Notepad, press **Ctrl + A**, **Ctrl + C**, then click into the SQL Editor and press **Ctrl + V**.
+3. Open the **apply** file, the one **without** `.rollback` in its name (for 0600: `0600_platform_approvals.sql`; its first lines say "APPLY FILE"), in Notepad, press **Ctrl + A**, **Ctrl + C**, then click into the SQL Editor and press **Ctrl + V**.
 4. Click **Run** (bottom right).
 5. **What you should see:** "Success. No rows returned" (or a single row from the last line). If you see an error, nothing was changed — the whole file runs as one unit. Copy the error message (it contains no secrets) and send it to Claude.
 

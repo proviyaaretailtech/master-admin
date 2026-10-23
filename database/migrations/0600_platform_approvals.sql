@@ -1,3 +1,6 @@
+-- ######################################################################
+-- ##  APPLY FILE. This ADDS 0600. (The .rollback.sql file removes it.) ##
+-- ######################################################################
 -- 0600_platform_approvals.sql
 -- Layer 1A (Master Governance): platform-wide approvals on top of the existing approval engine.
 -- Founder decision 1: tiered limits, Controller + Backup Controller, sideways escalation, 48-hour expiry.
