@@ -616,6 +616,53 @@ export const DEFAULT_FEATURES_TEMPLATE: FeaturePermission[] = [
     ],
   },
   {
+    id: "feat_approvals",
+    name: "Approvals & Approval Limits",
+    category: "system",
+    pagePath: "/approvals",
+    description:
+      "Platform approvals: refunds, adjustments and payouts above their limits, rule publishing and setting changes. The person who asks can never approve.",
+    accessLevel: "full",
+    actions: [
+      {
+        key: "view_approvals",
+        label: "View Approvals",
+        description: "See approval requests, their history and the approval limits",
+        enabled: true,
+      },
+      {
+        key: "request_approval",
+        label: "Request Approval",
+        description: "Raise a platform approval request",
+        enabled: true,
+      },
+      {
+        key: "approve_as_finance",
+        label: "Approve as Finance",
+        description: "Decide requests in the Finance band",
+        enabled: true,
+      },
+      {
+        key: "approve_as_controller",
+        label: "Approve as Controller",
+        description: "Decide requests in the Controller band",
+        enabled: true,
+      },
+      {
+        key: "approve_as_backup_controller",
+        label: "Approve as Backup Controller",
+        description: "Decide Controller requests escalated after their waiting time",
+        enabled: true,
+      },
+      {
+        key: "edit_approval_limits",
+        label: "Edit Approval Limits",
+        description: "Change approval bands, approvers, expiry and escalation (founders only)",
+        enabled: true,
+      },
+    ],
+  },
+  {
     id: "feat_dashboard",
     name: "Operations Dashboard",
     category: "platform",

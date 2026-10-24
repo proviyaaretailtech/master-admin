@@ -42,6 +42,12 @@ export const FEAT = {
     markPaid: "mark_payout_paid",
   },
   AUDIT: { id: "feat_audit_compliance", view: "view_audit_logs" },
+  APPROVALS: {
+    id: "feat_approvals",
+    view: "view_approvals",
+    request: "request_approval",
+    editLimits: "edit_approval_limits",
+  },
   INTEGRATIONS: {
     id: "feat_integrations",
     view: "view_integrations",

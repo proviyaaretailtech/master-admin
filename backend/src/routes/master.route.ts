@@ -19,6 +19,8 @@ import { peopleService } from "../services/master/people.service";
 import { partnerApplicationService } from "../services/master/partner-application.service";
 import { orderHoldService } from "../services/master/order-hold.service";
 import * as review from "../validators/master-review.validator";
+import * as gov from "../validators/master-governance.validator";
+import { governanceService } from "../services/master/governance.service";
 import { createOrganizationSchema } from "../validators/organization.validator";
 
 /**
@@ -293,6 +295,38 @@ for (const [verb, msg] of [
     res.status(OK).json({ message: msg, result: await orderHoldService.decide(actor, req.token ?? "", id, verb, reason) });
   }));
 }
+
+// ------------------------------------------------------------- approvals
+// Layer 1A (0600): platform approvals. Tiers name the approver roles; Controller escalation goes to the Backup Controller.
+r.get("/approvals", can("feat_approvals", "view_approvals"), wrap(async (req, res, actor) => {
+  res.status(OK).json({ message: "Approvals fetched successfully", ...(await governanceService.list(actor, gov.approvalsQuery.parse(req.query))) });
+}));
+r.post("/approvals", canWrite("feat_approvals", "request_approval"), wrap(async (req, res, actor) => {
+  const result = await governanceService.create(actor, gov.approvalCreateBody.parse(req.body));
+  res.status(result.required ? HTTPSTATUS.CREATED : OK).json({ message: result.required ? "Approval requested" : "No approval needed", result });
+}));
+r.get("/approvals/tiers", can("feat_approvals", "view_approvals"), wrap(async (_req, res) => {
+  res.status(OK).json({ message: "Approval limits fetched successfully", ...(await governanceService.tiers()) });
+}));
+r.put("/approvals/tiers/:id", canWrite("feat_approvals", "edit_approval_limits"), wrap(async (req, res, actor) => {
+  const { id } = idParams.parse(req.params);
+  res.status(OK).json({ message: "Approval limit updated", ...(await governanceService.updateTier(actor, id, gov.tierUpdateBody.parse(req.body))) });
+}));
+r.get("/approvals/:id", can("feat_approvals", "view_approvals"), wrap(async (req, res) => {
+  const { id } = idParams.parse(req.params);
+  res.status(OK).json({ message: "Approval fetched successfully", ...(await governanceService.get(id)) });
+}));
+r.post("/approvals/:id/decide", can("feat_approvals", "view_approvals"), wrap(async (req, res, actor) => {
+  // the approver role (approve_as_*) is checked in the service against the roles this request names
+  const { id } = idParams.parse(req.params);
+  const b = gov.approvalDecisionBody.parse(req.body);
+  res.status(OK).json({ message: b.decision === "approved" ? "Request approved" : "Request rejected", ...(await governanceService.decide(actor, id, b.decision, b.note)) });
+}));
+r.post("/approvals/:id/cancel", can("feat_approvals", "view_approvals"), wrap(async (req, res, actor) => {
+  const { id } = idParams.parse(req.params);
+  const b = gov.approvalCancelBody.parse(req.body ?? {});
+  res.status(OK).json({ message: "Request withdrawn", ...(await governanceService.cancel(actor, id, b.note)) });
+}));
 
 // ------------------------------------------------------------------ audit
 r.get("/audit-logs", can("feat_audit_compliance", "view_audit_logs"), wrap(async (req, res) => {

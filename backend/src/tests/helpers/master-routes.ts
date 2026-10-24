@@ -90,6 +90,14 @@ export const MASTER_ROUTES: MRoute[] = [
   g("/api/finance/ledger", "feat_finance", "view_finance"),
   g("/api/finance/reconciliation", "feat_finance", "view_finance"),
   g("/api/finance/rider-earnings", "feat_finance", "view_finance"),
+  // approvals (0600)
+  g("/api/approvals", "feat_approvals", "view_approvals"),
+  w("post", "/api/approvals", "feat_approvals", "request_approval"),
+  g("/api/approvals/tiers", "feat_approvals", "view_approvals"),
+  w("put", `/api/approvals/tiers/${ID}`, "feat_approvals", "edit_approval_limits"),
+  g(`/api/approvals/${ID}`, "feat_approvals", "view_approvals"),
+  { method: "post", path: `/api/approvals/${ID}/decide`, feature: "feat_approvals", action: "view_approvals" },
+  { method: "post", path: `/api/approvals/${ID}/cancel`, feature: "feat_approvals", action: "view_approvals" },
   // audit
   g("/api/audit-logs", "feat_audit_compliance", "view_audit_logs"),
   // integrations

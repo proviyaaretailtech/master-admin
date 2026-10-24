@@ -30,6 +30,8 @@ import { DispatchBoardPage } from "../pages/master/DispatchBoardPage";
 import { SettlementsPayoutsPage } from "../pages/master/SettlementsPayoutsPage";
 import { FinanceControlPage } from "../pages/master/FinanceControlPage";
 import { AuditViewerPage } from "../pages/master/AuditViewerPage";
+import { ApprovalsPage } from "../pages/master/ApprovalsPage";
+import { ApprovalLimitsPage } from "../pages/master/ApprovalLimitsPage";
 import {
   IntegrationsPage,
   CrmIntegrationPage,
@@ -613,6 +615,30 @@ export const AppRoutes: React.FC = () => {
                 featureNameKey="nav.feature.riderPay"
               >
                 <RiderPayPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/approvals"
+            element={
+              <PermissionRoute
+                featureId={FEAT.APPROVALS.id}
+                actionKey={FEAT.APPROVALS.view}
+                featureNameKey="nav.feature.approvals"
+              >
+                <ApprovalsPage />
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path="/approvals/limits"
+            element={
+              <PermissionRoute
+                featureId={FEAT.APPROVALS.id}
+                actionKey={FEAT.APPROVALS.view}
+                featureNameKey="nav.feature.approvals"
+              >
+                <ApprovalLimitsPage />
               </PermissionRoute>
             }
           />

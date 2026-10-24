@@ -33,6 +33,25 @@ export interface NavSection {
 /** Sidebar model. Items render only when the permission model allows the feature+action. */
 export const NAV_SECTIONS: NavSection[] = [
   {
+    id: "governance",
+    labelKey: "nav.sections.governance",
+    icon: Landmark,
+    items: [
+      {
+        id: "approvals",
+        labelKey: "nav.items.approvals",
+        path: "/approvals",
+        feature: { id: FEAT.APPROVALS.id, action: FEAT.APPROVALS.view },
+      },
+      {
+        id: "approvalLimits",
+        labelKey: "nav.items.approvalLimits",
+        path: "/approvals/limits",
+        feature: { id: FEAT.APPROVALS.id, action: FEAT.APPROVALS.view },
+      },
+    ],
+  },
+  {
     id: "organization",
     labelKey: "nav.organization",
     icon: Building2,

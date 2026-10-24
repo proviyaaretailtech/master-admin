@@ -157,7 +157,8 @@
     "reviewing": "Reviewing",
     "withdrawn": "Withdrawn",
     "held": "Held",
-    "released": "Released"
+    "released": "Released",
+    "executed": "Executed"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -374,7 +375,9 @@
       "cms": "CMS integration",
       "apiWebhooks": "API & webhooks",
       "partnerApplications": "Partner applications",
-      "orderHolds": "Held orders"
+      "orderHolds": "Held orders",
+      "approvals": "Approvals",
+      "approvalLimits": "Approval limits"
     },
     "feature": {
       "usersManagement": "Users Management",
@@ -408,7 +411,8 @@
       "cms": "CMS integration",
       "apiWebhooks": "API & webhooks",
       "partnerApplications": "Partner applications",
-      "orderHolds": "Held orders"
+      "orderHolds": "Held orders",
+      "approvals": "Approvals"
     },
     "placeholder": {
       "eyebrow": "SYSTEM DOMAIN MODULE",
@@ -421,7 +425,8 @@
     "sections": {
       "operations": "Operations",
       "finance": "Finance",
-      "integrations": "Integrations & API"
+      "integrations": "Integrations & API",
+      "governance": "Governance"
     },
     "signOutEverywhere": "Sign out everywhere"
   },
@@ -1725,6 +1730,36 @@
             "description": "Create, revoke and resend invitations"
           }
         }
+      },
+      "feat_approvals": {
+        "name": "Approvals & Approval Limits",
+        "description": "Platform approvals: refunds, adjustments and payouts above their limits, rule publishing and setting changes. The person who asks can never approve.",
+        "actions": {
+          "view_approvals": {
+            "label": "View Approvals",
+            "description": "See approval requests, their history and the approval limits"
+          },
+          "request_approval": {
+            "label": "Request Approval",
+            "description": "Raise a platform approval request"
+          },
+          "approve_as_finance": {
+            "label": "Approve as Finance",
+            "description": "Decide requests in the Finance band"
+          },
+          "approve_as_controller": {
+            "label": "Approve as Controller",
+            "description": "Decide requests in the Controller band"
+          },
+          "approve_as_backup_controller": {
+            "label": "Approve as Backup Controller",
+            "description": "Decide Controller requests escalated after their waiting time"
+          },
+          "edit_approval_limits": {
+            "label": "Edit Approval Limits",
+            "description": "Change approval bands, approvers, expiry and escalation (founders only)"
+          }
+        }
       }
     },
     "catalogueLoadFailed": "Could not load the list of permissions. Close the editor and try again."
@@ -2618,6 +2653,83 @@
       "done": {
         "release": "Released. The order is on its way to the restaurant.",
         "reject": "Rejected. The order was cancelled."
+      }
+    },
+    "approvals": {
+      "title": "Approvals",
+      "subtitle": "Requests that need a second person: refunds, adjustments and payouts above their limits, rule publishing and setting changes. The person who asks can never approve.",
+      "viewMine": "Waiting for me",
+      "viewEscalated": "Escalated",
+      "viewAll": "All",
+      "empty": "Nothing is waiting for you.",
+      "emptyAll": "No approval requests here.",
+      "action": "Action",
+      "subject": "For",
+      "amount": "Amount",
+      "requestedBy": "Asked by",
+      "approvers": "Approvers",
+      "expires": "Expires",
+      "created": "Asked on",
+      "escalated": "Escalated to",
+      "band": "Band",
+      "reason": "Reason",
+      "approve": "Approve",
+      "reject": "Reject",
+      "withdraw": "Withdraw",
+      "noteLabel": "Note (optional)",
+      "rejectReason": "Reason for rejecting",
+      "approved": "Request approved.",
+      "rejected": "Request rejected.",
+      "withdrawn": "Request withdrawn.",
+      "detailTitle": "Approval request",
+      "history": "Decisions",
+      "noDecisions": "No decisions yet.",
+      "decidedAs": "as {{role}}",
+      "yourRoles": "Your approver roles: {{roles}}",
+      "noRoles": "You hold no approver role, so nothing is routed to you.",
+      "selfNote": "You asked for this, so someone else must decide it.",
+      "actions": {
+        "refund": "Refund",
+        "ledger_adjustment": "Ledger adjustment",
+        "payout_release": "Payout release",
+        "rule_publish": "Publish a rule",
+        "setting_change": "Setting change",
+        "ui_release": "UI release",
+        "partner_reactivation": "Partner reactivation",
+        "credit_issue": "Issue credits",
+        "other": "Other"
+      },
+      "roles": {
+        "finance": "Finance",
+        "controller": "Controller",
+        "backup_controller": "Backup Controller"
+      },
+      "limits": {
+        "title": "Approval limits",
+        "subtitle": "Who must approve, by amount (founder decision 1). Controller requests escalate to the Backup Controller, never to founders.",
+        "band": "Amount band",
+        "any": "Any amount",
+        "upTo": "Up to {{max}}",
+        "above": "Above {{min}}",
+        "between": "{{min}} to {{max}}",
+        "alone": "Requester may act alone",
+        "approvers": "Approvers",
+        "backup": "Escalates to",
+        "expiry": "Expires after",
+        "hours": "{{count}} h",
+        "escalateAfter": "Escalates after",
+        "minutes": "{{count}} min",
+        "never": "Never",
+        "edit": "Edit",
+        "save": "Save change",
+        "requiresApproval": "Needs approval in this band",
+        "expiryHours": "Expires after (hours, 1 to 720)",
+        "escalateMinutes": "Escalate after (minutes, 5 to 10080; empty = never)",
+        "enabled": "Band is in use",
+        "reasonLabel": "Why are you changing this?",
+        "saved": "Approval limit updated.",
+        "foundersOnly": "Only founders can change approval limits.",
+        "empty": "No approval limits found. The 0600 database change may not be applied yet."
       }
     }
   }
