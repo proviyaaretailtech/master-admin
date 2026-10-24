@@ -8,12 +8,29 @@ import { isProviderNotConfigured } from "./useResource";
 
 /* ------------------------------------------------------------------ layout */
 
+/** True until the given date (YYYY-MM-DD, end of that day). Marks recently shipped screens as "New". */
+export const isStillNew = (until?: string, now: number = Date.now()): boolean =>
+  !!until && now <= new Date(`${until}T23:59:59`).getTime();
+
+/** Small "New" tag for recently shipped screens. Renders nothing once `until` has passed. */
+export const NewBadge: React.FC<{ until?: string }> = ({ until }) => {
+  const { t } = useTranslation();
+  if (!isStillNew(until)) return null;
+  return (
+    <span className="ml-1.5 inline-flex items-center rounded-full bg-[#65D000] px-1.5 py-0.5 align-middle text-[9px] font-extrabold uppercase tracking-wide text-white">
+      {t("common.new")}
+    </span>
+  );
+};
+
 export const PageHeader: React.FC<{
   title: string;
   subtitle?: string;
   eyebrow?: string;
   actions?: React.ReactNode;
-}> = ({ title, subtitle, eyebrow, actions }) => (
+  /** Shows a "New" tag beside the title until this date (YYYY-MM-DD). */
+  newUntil?: string;
+}> = ({ title, subtitle, eyebrow, actions, newUntil }) => (
   <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
     <div className="min-w-0">
       {eyebrow && (
@@ -21,7 +38,10 @@ export const PageHeader: React.FC<{
           {eyebrow}
         </div>
       )}
-      <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">{title}</h1>
+      <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">
+        {title}
+        <NewBadge until={newUntil} />
+      </h1>
       {subtitle && <p className="mt-1 max-w-2xl text-xs text-slate-500 sm:text-sm">{subtitle}</p>}
     </div>
     {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}

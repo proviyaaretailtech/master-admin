@@ -18,6 +18,7 @@ import {
   inputCls,
 } from "../../components/master/ui";
 import { useAction, useResource } from "../../components/master/useResource";
+import { NEW_UNTIL_LAYER_1A } from "../../components/master/navConfig";
 
 type Form = { approvers: string[]; backup: string[]; expiry: string; escalate: string; requires: boolean; enabled: boolean; reason: string };
 
@@ -101,7 +102,12 @@ export const ApprovalLimitsPage: React.FC = () => {
 
   return (
     <div>
-      <PageHeader eyebrow={t("nav.sections.governance")} title={t("m.approvals.limits.title")} subtitle={t("m.approvals.limits.subtitle")} />
+      <PageHeader
+        eyebrow={t("nav.sections.governance")}
+        title={t("m.approvals.limits.title")}
+        subtitle={t("m.approvals.limits.subtitle")}
+        newUntil={NEW_UNTIL_LAYER_1A}
+      />
       {notice && (
         <div className="mb-3">
           <Notice>{notice}</Notice>

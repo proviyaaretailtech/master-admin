@@ -7,6 +7,7 @@ import { MasterProvider } from "./MasterContext";
 import { TopbarSlotProvider } from "./TopbarSlot";
 import { Topbar } from "./Topbar";
 import { NAV_SECTIONS, PLACEHOLDER_DOMAINS, isNavActive } from "./navConfig";
+import { NewBadge, isStillNew } from "./ui";
 
 /**
  * The one Master layout: sidebar (built from the permission model) + Topbar + page outlet.
@@ -119,6 +120,9 @@ export const MasterShell: React.FC = () => {
                             aria-hidden="true"
                           />
                           {t(s.labelKey)}
+                          {s.visible.some((i) => isStillNew(i.newUntil)) && (
+                            <NewBadge until={s.visible.find((i) => isStillNew(i.newUntil))?.newUntil} />
+                          )}
                         </span>
                         <ChevronDown
                           className={`h-3.5 w-3.5 transition-transform ${open ? "" : "-rotate-90"}`}
@@ -137,6 +141,7 @@ export const MasterShell: React.FC = () => {
                                 className={linkCls(active)}
                               >
                                 {t(i.labelKey)}
+                                <NewBadge until={i.newUntil} />
                               </Link>
                             );
                           })}

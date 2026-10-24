@@ -94,7 +94,8 @@
       "yearsAgo_other": "{{count}} years ago"
     },
     "unassigned": "Unassigned",
-    "never": "Never"
+    "never": "Never",
+    "new": "New"
   },
   "status": {
     "draft": "Draft",

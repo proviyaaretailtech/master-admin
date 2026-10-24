@@ -22,7 +22,12 @@ export interface NavItem {
   feature?: { id: string; action?: string };
   /** Extra path prefixes that mark this item active. */
   also?: string[];
+  /** Shows a "New" tag on the item (and its section) until this date, YYYY-MM-DD. */
+  newUntil?: string;
 }
+
+/** Layer 1A (platform approvals) shipped 2026-10-23; tagged "New" for 30 days. */
+export const NEW_UNTIL_LAYER_1A = "2026-11-23";
 export interface NavSection {
   id: string;
   labelKey: string;
@@ -42,12 +47,14 @@ export const NAV_SECTIONS: NavSection[] = [
         labelKey: "nav.items.approvals",
         path: "/approvals",
         feature: { id: FEAT.APPROVALS.id, action: FEAT.APPROVALS.view },
+        newUntil: NEW_UNTIL_LAYER_1A,
       },
       {
         id: "approvalLimits",
         labelKey: "nav.items.approvalLimits",
         path: "/approvals/limits",
         feature: { id: FEAT.APPROVALS.id, action: FEAT.APPROVALS.view },
+        newUntil: NEW_UNTIL_LAYER_1A,
       },
     ],
   },

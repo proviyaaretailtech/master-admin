@@ -5,6 +5,8 @@ import { ApprovalLimitsPage } from "../pages/master/ApprovalLimitsPage";
 import { approvalsApi } from "../api/approvals.api";
 import type { Approval, ApprovalTier } from "../api/approvals.api";
 import { limitedUser, page, renderPage, superUser } from "./master-helpers";
+import { isStillNew } from "../components/master/ui";
+import { NEW_UNTIL_LAYER_1A } from "../components/master/navConfig";
 
 vi.mock("../api/approvals.api", async (orig) => ({
   ...(await orig<object>()),
@@ -97,6 +99,21 @@ describe("ApprovalsPage", () => {
     const drawer = await screen.findByRole("dialog", { name: "Approval request" });
     await within(drawer).findByText("Customer got a damaged order");
     expect(within(drawer).queryByRole("button", { name: "Approve" })).toBeNull();
+  });
+});
+
+describe("New tag", () => {
+  it("shows until the end of its date, then disappears by itself", () => {
+    expect(isStillNew("2026-11-23", new Date("2026-11-23T20:00:00").getTime())).toBe(true);
+    expect(isStillNew("2026-11-23", new Date("2026-11-24T00:00:01").getTime())).toBe(false);
+    expect(isStillNew(undefined)).toBe(false);
+  });
+
+  it("marks the new Approvals page while it is new", async () => {
+    vi.mocked(approvalsApi.list).mockResolvedValue({ ...page([]), myRoles: [] } as never);
+    renderPage(<ApprovalsPage />, { user: financeUser });
+    const heading = await screen.findByRole("heading", { level: 1 });
+    expect(heading).toHaveTextContent(isStillNew(NEW_UNTIL_LAYER_1A) ? "ApprovalsNew" : "Approvals");
   });
 });
 

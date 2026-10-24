@@ -19,6 +19,7 @@ import {
   Tabs,
 } from "../../components/master/ui";
 import { useAction, useResource } from "../../components/master/useResource";
+import { NEW_UNTIL_LAYER_1A } from "../../components/master/navConfig";
 
 /**
  * Layer 1A (founder decision 1): platform approvals. "Waiting for me" shows pending requests that name one of my
@@ -65,7 +66,12 @@ export const ApprovalsPage: React.FC = () => {
 
   return (
     <div>
-      <PageHeader eyebrow={t("nav.sections.governance")} title={t("m.approvals.title")} subtitle={t("m.approvals.subtitle")} />
+      <PageHeader
+        eyebrow={t("nav.sections.governance")}
+        title={t("m.approvals.title")}
+        subtitle={t("m.approvals.subtitle")}
+        newUntil={NEW_UNTIL_LAYER_1A}
+      />
       {notice && (
         <div className="mb-3">
           <Notice>{notice}</Notice>

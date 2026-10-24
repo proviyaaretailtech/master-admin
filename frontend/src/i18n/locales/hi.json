@@ -94,7 +94,8 @@
       "yearsAgo_other": "{{count}} साल पहले"
     },
     "unassigned": "असाइन नहीं किया गया",
-    "never": "कभी नहीं"
+    "never": "कभी नहीं",
+    "new": "नया"
   },
   "status": {
     "draft": "ड्राफ़्ट",
